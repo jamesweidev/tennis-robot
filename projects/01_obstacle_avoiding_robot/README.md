@@ -1,22 +1,19 @@
+
 # Autonomous Mobile Base
 
-## Goal
+Basic STM32 based robot that drives around and avoids hitting objects. Serves no purpose whatsoever.
 
-Build a basic STM32-based robot that drives forward and avoids obstacles using an ultrasonic sensor.
-
-## Milestones
+## Versions
 | Version | Feature | Status |
 |---|---|---|
-| v1 | Obstacle avoidance with ultrasonic sensor | Done |
-| v2 | Distance-based PWM speed control | In progress |
-| v3 | Encoder speed measurement | Planned |
-| v4 | Closed-loop drive-straight control | Planned |
-
+| v1 | Obstacle Avoidance with HC-SR04 | Done |
+| v2 | Distance Based PWM | In progress |
 ---
 
-## V1: Obstacle Avoidance
+## Demos
+All demos are in 'media/'
 
-## What It Does
+## V1: Obstacle Avoidance
 
 1. Drives forward
 2. Measures distance using HC-SR04
@@ -52,20 +49,8 @@ Firmware is located in `firmware/obstacle_avoidance_stm32/`.
 - Ultrasonic trigger/echo measurement
 - Basic control logic in main loop
 
-## Problems I Ran Into
-
-- HC-SR04 echo is 5V and needs protection for STM32 input
-- Timer configuration/debugging took time
-- Motor supply ground must be shared with STM32 ground
-
-## Media
-
-- Robot Photo:
-- Demo Video: 
 
 ## V2: Distance Based PWM Speed Control
-
-## Goal
 
 Improve the robot's movement by changing motor speed based on obstacle distance instead of only using simple forward/turn/reverse behavior.
 
@@ -86,8 +71,3 @@ No Major Changes
 - Map ultrasonic reading to speed level
 - Adjust speed using pwm
 - Overall make robot response less abrupt
-
-## Media 
-
-PWM Waveform: 
-Demo: 

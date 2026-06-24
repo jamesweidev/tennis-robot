@@ -12,7 +12,7 @@ This repository documents my process of building the embedded, control, and visi
 
 ## Current Focus
 
-I am currently working on the autonomous mobile base. The first version uses ultrasonic obstacle avoidance, and later versions add PWM speed control, encoder feedback, and closed-loop drive correction.
+Currently working on a basic autonomous base using an ultrasonic sensor, cameras will be used later. 
 
 ## Firmware
 
