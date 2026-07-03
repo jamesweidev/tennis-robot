@@ -38,4 +38,19 @@ typedef enum
     ACTION_STOP
 } ActionType;
 
+void Perform_Action(uint32_t speed, ActionType type);
+void motor_direction_config(ActionType type);
+void Stop_Robot();
+uint32_t get_distance(void);
+uint32_t micros(void);
+void delay_us(uint32_t micros);
+
+void Ultrasonic_GPIO_Init(void);
+void TIM3_Micros_Init(void);
+void PWM_Init(void);
+void SystemClock_Config(void);
+
+void UART1_Init(void);
+void Error_Handler(void);
+
 #endif

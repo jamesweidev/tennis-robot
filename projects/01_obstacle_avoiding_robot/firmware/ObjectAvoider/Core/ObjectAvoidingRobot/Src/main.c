@@ -13,21 +13,6 @@ TIM_HandleTypeDef htim2 = {0};
 TIM_HandleTypeDef htim3 = {0};
 UART_HandleTypeDef huart1 = {0};
 
-void Perform_Action(uint32_t speed, ActionType type);
-void motor_direction_config(ActionType type);
-void Stop_Robot();
-uint32_t get_distance(void);
-uint32_t micros(void);
-void delay_us(uint32_t micros);
-
-void Ultrasonic_GPIO_Init(void);
-void TIM3_Micros_Init(void);
-void PWM_Init(void);
-void SystemClock_Config(void);
-
-void UART1_Init(void);
-void Error_Handler(void);
-
 char msg[64];
 
 int main(void)
@@ -41,19 +26,20 @@ int main(void)
 
 	UART1_Init();
 
-	uint32_t zeros = 0;
 	while (1)
 	{
 		uint32_t distance = get_distance();
+
 		if (distance == 0)
 		{
-			distance = get_distance();
-
-			if (distance == 0) 
+			for (uint8_t num_zeros = 0; num_zeros < 5; num_zeros++)
 			{
-				zeros++;
+				// Sensor randomly returns 0
+				// If that happens just get the distance a couple more times
+				distance = get_distance();
 			}
 		}
+
 
 		// sprintf(msg, "distance is: %lu\r\n", distance);
 		// if (HAL_UART_Transmit(&huart1, (uint8_t*) msg, strlen(msg), 0xFFFFFFFF) != HAL_OK)
@@ -61,20 +47,19 @@ int main(void)
 		// 	Error_Handler();
 		// }
 
-		if ((distance < 150 && distance != 0))
+
+		if (distance >= 500 || distance == 0)
 		{
-			Perform_Action(67, ACTION_BACKWARD);
-		} else if (zeros >= 100)
+			// Sensor times out and returns 0 if It's too far from the closest object
+			// So robot should go forward when distance == 0
+			Perform_Action(65, ACTION_FORWARD);
+		} else if (distance >= 150)
 		{
-			Perform_Action(67, ACTION_BACKWARD);
-			HAL_Delay(600);
-			zeros = 0;
-		}else if (distance >= 500 || distance == 0)
+			Perform_Action(65, ACTION_RIGHT);
+		} else 
 		{
-			Perform_Action(67, ACTION_FORWARD);
-		} else
-		{
-			Perform_Action(67, ACTION_RIGHT);
+			Perform_Action(75, ACTION_BACKWARD);
+			HAL_Delay(100);
 		}
 
 	}
@@ -158,6 +143,7 @@ void Ultrasonic_GPIO_Init(void)
 
 void motor_direction_config(ActionType type)
 {
+	// Sets motor driver direction pins
 	if (type == ACTION_FORWARD)
 	{
 		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, IN1_PIN, GPIO_PIN_RESET);
@@ -193,14 +179,14 @@ void motor_direction_config(ActionType type)
 
 uint32_t get_distance(void)
 {
+	// Sends initial pulse
 	HAL_GPIO_WritePin(US_GPIO_PORT, US_TRIG_PIN, GPIO_PIN_SET);
 	delay_us(10);
 	HAL_GPIO_WritePin(US_GPIO_PORT, US_TRIG_PIN, GPIO_PIN_RESET);
 
 
 	uint32_t timeout_start = micros();
-	// Wait until pulse, then start counting. if timedout, return 0
-	
+	// Wait until pulse returns, then start counting. if timedout, return 0
 	while (HAL_GPIO_ReadPin(US_GPIO_PORT, US_ECHO_PIN) != GPIO_PIN_SET)
 	{
 		if (micros() - timeout_start >= 38000)
@@ -220,6 +206,8 @@ uint32_t get_distance(void)
 	}
 
 	uint32_t duration_us = micros() - pulse_start;
+
+	// get the distance via time elapsed * speed of sound
 	uint32_t distance = duration_us * 343 / 2000; // 0.343 mm/us
 
 

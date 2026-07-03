@@ -11,7 +11,7 @@ Basic STM32 based robot that drives around and avoids hitting objects. Serves no
 ---
 
 ## Demos
-All demos are in 'media/'
+All demos are in 'media/' (not yet)
 
 ## V1: Obstacle Avoidance
 
