@@ -1,0 +1,33 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "STM32 Flash: ObjectAvoidingRobot",
+      "type": "shell",
+      "command": "/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/Resources/bin/STM32_Programmer_CLI",
+      "args": [
+        "-c",
+        "port=SWD",
+        "-w",
+        "${workspaceFolder}/build/Debug/ObjectAvoidingRobot.elf",
+        "-v",
+        "-rst"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "STM32 Flash: EncoderTesting",
+      "type": "shell",
+      "command": "/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/Resources/bin/STM32_Programmer_CLI",
+      "args": [
+        "-c",
+        "port=SWD",
+        "-w",
+        "${workspaceFolder}/build/Debug/EncoderTesting.elf",
+        "-v",
+        "-rst"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}

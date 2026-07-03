@@ -1,0 +1,32 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cortex-debug",
+            "name": "Cortex-Debug: ObjectAvoidingRobot",
+            "request": "launch",
+            "servertype": "stlink",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/build/Debug/ObjectAvoidingRobot.elf",
+            "device": "STM32F446RE",
+            "interface": "swd",
+            "runToEntryPoint": "main",
+            "svdFile": "${workspaceFolder}/STM32F446.svd"
+        },
+        {
+            "type": "cortex-debug",
+            "name": "Cortex-Debug: EncoderTesting",
+            "request": "launch",
+            "servertype": "stlink",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/build/Debug/EncoderTesting.elf",
+            "device": "STM32F446RE",
+            "interface": "swd",
+            "runToEntryPoint": "main",
+            "svdFile": "${workspaceFolder}/STM32F446.svd"
+        }
+    ], 
+}
