@@ -6,11 +6,11 @@
     "configurations": [
         {
             "type": "cortex-debug",
-            "name": "Cortex-Debug: ObjectAvoidingRobot",
+            "name": "Cortex-Debug: V1_BasicAvoidance",
             "request": "launch",
             "servertype": "stlink",
             "cwd": "${workspaceFolder}",
-            "executable": "${workspaceFolder}/build/Debug/ObjectAvoidingRobot.elf",
+            "executable": "${workspaceFolder}/build/Debug/V1_BasicAvoidance.elf",
             "device": "STM32F446RE",
             "interface": "swd",
             "runToEntryPoint": "main",

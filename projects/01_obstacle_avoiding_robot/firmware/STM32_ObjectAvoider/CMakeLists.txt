@@ -22,6 +22,7 @@ message("Build type: " ${CMAKE_BUILD_TYPE})
 
 add_subdirectory(cmake/stm32cubemx)
 
+# Enable floating point
 set(FPU_COMPILE_FLAGS
     -mcpu=cortex-m4
     -mthumb
@@ -30,17 +31,17 @@ set(FPU_COMPILE_FLAGS
 )
 
 #################### ObjectAvoidingRobot ####################
-add_executable(ObjectAvoidingRobot
-    Core/ObjectAvoidingRobot/Src/main.c
-    Core/ObjectAvoidingRobot/Src/stm32f4xx_hal_msp.c
-    Core/ObjectAvoidingRobot/Src/stm32f4xx_it.c
+add_executable(V1_BasicAvoidance
+    Core/V1_BasicAvoidance/Src/main.c
+    Core/V1_BasicAvoidance/Src/stm32f4xx_hal_msp.c
+    Core/V1_BasicAvoidance/Src/stm32f4xx_it.c
 )
 
-target_include_directories(ObjectAvoidingRobot PRIVATE
-    Core/ObjectAvoidingRobot/Inc
+target_include_directories(V1_BasicAvoidance PRIVATE
+    Core/V1_BasicAvoidance/Inc
 )
 
-target_link_libraries(ObjectAvoidingRobot PRIVATE
+target_link_libraries(V1_BasicAvoidance PRIVATE
     STM32_Drivers
 )
 

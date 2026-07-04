@@ -2,14 +2,14 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "STM32 Flash: ObjectAvoidingRobot",
+      "label": "STM32 Flash: V1_BasicAvoidance",
       "type": "shell",
       "command": "/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/Resources/bin/STM32_Programmer_CLI",
       "args": [
         "-c",
         "port=SWD",
         "-w",
-        "${workspaceFolder}/build/Debug/ObjectAvoidingRobot.elf",
+        "${workspaceFolder}/build/Debug/V1_BasicAvoidance.elf",
         "-v",
         "-rst"
       ],

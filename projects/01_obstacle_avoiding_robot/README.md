@@ -1,17 +1,17 @@
 
 # Autonomous Mobile Base
 
-Basic STM32 based robot that drives around and avoids hitting objects. Serves no purpose whatsoever.
+Basic STM32 based robot that drives around and avoids hitting objects. Meant to get used to HAL, beyond which it serves no purpose whatsoever.
 
 ## Versions
 | Version | Feature | Status |
 |---|---|---|
 | v1 | Obstacle Avoidance with HC-SR04 | Done |
-| v2 | Distance Based PWM | In progress |
+| v2 | With Encoder Feedback | In progress |
 ---
 
 ## Demos
-All demos are in 'media/' (not yet)
+All demos are (not yet) in 'media/' 
 
 ## V1: Obstacle Avoidance
 
@@ -33,16 +33,16 @@ All demos are in 'media/' (not yet)
 |---|---|---|---|
 | HC-SR04 TRIG | PA8 | GPIO Output | Ultrasonic trigger |
 | HC-SR04 ECHO | PA9 | GPIO Input | Ultrasonic echo input |
-| L298N IN1 | PA0 | GPIO Output | Right motor direction |
-| L298N IN2 | PA1 | GPIO Output | Right motor direction |
+| L298N IN1 | PA6 | GPIO Output | Right motor direction |
+| L298N IN2 | PA7 | GPIO Output | Right motor direction |
 | L298N IN3 | PA4 | GPIO Output | Left motor direction |
 | L298N IN4 | PA5 | GPIO Output | Left motor direction |
-| L298N ENA | PB6 | TIM4_CH1 PWM | Right motor speed |
-| L298N ENB | PA6 | TIM3_CH1 PWM | Left motor speed |
+| L298N ENA | PA0 | TIM4_CH1 PWM | Right motor speed |
+| L298N ENB | PA1 | TIM3_CH1 PWM | Left motor speed |
 | L298N GND | STM32 GND | Ground | Common ground |
 
 ## Firmware
-Firmware is located in `firmware/obstacle_avoidance_stm32/`.
+Firmware is located at `firmware/STM32_ObjectAvoider/Core/V1_BasicAvoidance`
 
 - GPIO for motor direction
 - Timer/SysTick for delays
@@ -52,22 +52,15 @@ Firmware is located in `firmware/obstacle_avoidance_stm32/`.
 
 ## V2: Distance Based PWM Speed Control
 
-Improve the robot's movement by changing motor speed based on obstacle distance instead of only using simple forward/turn/reverse behavior.
+Incorporate encoder feedback loop and allow the robot to go in straight line
 
-## Planned Behavior
-
-| Distance | Speed |
-| --- | --- |
-| Far | Fast |
-| Medium | Slow | 
-| Close | reverse or turn |
 
 ## Hardware Changes From V1
 
-No Major Changes
+- New motor with encoder
+- Chassis for the motors
 
 ## Firmware Changes From V1
+Firmware is located at `firmware/STM32_ObjectAvoider/Core/V2_`
 
-- Map ultrasonic reading to speed level
-- Adjust speed using pwm
-- Overall make robot response less abrupt
+- Add a timer and feedback loop for the motor encoders
