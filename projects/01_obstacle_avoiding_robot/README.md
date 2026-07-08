@@ -7,7 +7,7 @@ Basic STM32 based robot that drives around and avoids hitting objects. Meant to 
 | Version | Feature | Status |
 |---|---|---|
 | v1 | Obstacle Avoidance with HC-SR04 | Done |
-| v2 | With Encoder Feedback | In progress |
+| v2 | With Encoder Feedback Loop | In progress |
 ---
 
 ## Demos
@@ -54,13 +54,31 @@ Firmware is located at `firmware/STM32_ObjectAvoider/Core/V1_BasicAvoidance`
 
 Incorporate encoder feedback loop and allow the robot to go in straight line
 
-
 ## Hardware Changes From V1
 
 - New motor with encoder
-- Chassis for the motors
+- Use TB6612FNG instead of L298N
+
+## Wiring
+
+| Component | MCU Pin | STM32 Function | Purpose |
+|---|---|---|---|
+| HC-SR04 TRIG | PA8 | GPIO Output | Ultrasonic trigger |
+| HC-SR04 ECHO | PA9 | GPIO Input | Ultrasonic echo input |
+| TB6612FNG AIN1 | PA6 | GPIO Output | Right motor direction |
+| TB6612FNG AIN2 | PA7 | GPIO Output | Right motor direction |
+| TB6612FNG BIN1 | PA4 | GPIO Output | Left motor direction |
+| TB6612FNG BIN2 | PA5 | GPIO Output | Left motor direction |
+| TB6612FNG PWMA | PA0 | TIM2_CH1 PWM | Right motor speed |
+| TB6612FNG PWMB | PA1 | TIM2_CH2 PWM | Left motor speed |
+| TB6612FNG GND | STM32 GND | Ground | Common ground |
+| Right ENCA | PB6 | TIM4_CH1 IC | Right motor encoder A |
+| Right ENCB | PB7 | GPIO Input | Right motor encoder A |
+| Left ENCA | PB8 | TIM4_CH3 IC | Left motor encoder A |
+| Left ENCB | PB9 | GPIO Input | Left motor encoder A |
+
 
 ## Firmware Changes From V1
-Firmware is located at `firmware/STM32_ObjectAvoider/Core/V2_`
+Firmware is located at `firmware/STM32_ObjectAvoider/Core/V2_WithEncoders`
 
 - Add a timer and feedback loop for the motor encoders
