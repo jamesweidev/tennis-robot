@@ -16,6 +16,20 @@
       "problemMatcher": []
     },
     {
+      "label": "STM32 Flash: V2_WithEncoders",
+      "type": "shell",
+      "command": "/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/Resources/bin/STM32_Programmer_CLI",
+      "args": [
+        "-c",
+        "port=SWD",
+        "-w",
+        "${workspaceFolder}/build/Debug/V2_WithEncoders.elf",
+        "-v",
+        "-rst"
+      ],
+      "problemMatcher": []
+    },
+    {
       "label": "STM32 Flash: EncoderTesting",
       "type": "shell",
       "command": "/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/Resources/bin/STM32_Programmer_CLI",
@@ -24,6 +38,20 @@
         "port=SWD",
         "-w",
         "${workspaceFolder}/build/Debug/EncoderTesting.elf",
+        "-v",
+        "-rst"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "STM32 Flash: Testing",
+      "type": "shell",
+      "command": "/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/Resources/bin/STM32_Programmer_CLI",
+      "args": [
+        "-c",
+        "port=SWD",
+        "-w",
+        "${workspaceFolder}/build/Debug/Testing.elf",
         "-v",
         "-rst"
       ],

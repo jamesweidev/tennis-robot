@@ -69,5 +69,60 @@ target_link_options(EncoderTesting PRIVATE
     -u _printf_float
 )
 
+
+#################### Testing ####################
+add_executable(Testing
+    Core/Testing/Src/main.c
+    Core/Testing/Src/stm32f4xx_hal_msp.c
+    Core/Testing/Src/stm32f4xx_it.c
+)
+
+target_include_directories(Testing PRIVATE
+    Core/Testing/Inc
+)
+
+target_link_libraries(Testing PRIVATE
+    STM32_Drivers
+)
+
+target_compile_options(Testing PRIVATE
+    ${FPU_COMPILE_FLAGS}
+)
+
+target_link_options(Testing PRIVATE
+    ${FPU_COMPILE_FLAGS}
+    -u _printf_float
+)
+
+
+#################### V2_WithEncoders ####################
+add_executable(V2_WithEncoders
+    Core/V2_WithEncoders/Src/main.c
+    Core/V2_WithEncoders/Src/debug_uart.c
+    Core/V2_WithEncoders/Src/encoder.c
+    Core/V2_WithEncoders/Src/motor.c
+    Core/V2_WithEncoders/Src/pid.c
+    Core/V2_WithEncoders/Src/ultrasonic.c
+    Core/V2_WithEncoders/Src/stm32f4xx_hal_msp.c
+    Core/V2_WithEncoders/Src/stm32f4xx_it.c
+)
+
+target_include_directories(V2_WithEncoders PRIVATE
+    Core/V2_WithEncoders/Inc
+)
+
+target_link_libraries(V2_WithEncoders PRIVATE
+    STM32_Drivers
+)
+
+target_compile_options(V2_WithEncoders PRIVATE
+    ${FPU_COMPILE_FLAGS}
+)
+
+target_link_options(V2_WithEncoders PRIVATE
+    ${FPU_COMPILE_FLAGS}
+    -u _printf_float
+)
+
 # Remove wrong libob.a library dependency when using cpp files
 list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)

@@ -180,7 +180,6 @@ void TIM2_init(void)
 	{
 		Error_Handler();
 	}
-
 }
 
 
