@@ -1,7 +1,7 @@
 
 # Autonomous Mobile Base
 
-Basic STM32 based robot that drives around and avoids hitting objects. Meant to get used to HAL, beyond which it serves no purpose whatsoever.
+Basic STM32 based robot that drives around and avoids hitting objects. Used for learning the fundamentals, beyond which it serves no purpose whatsoever.
 
 ## Versions
 | Version | Feature | Status |
