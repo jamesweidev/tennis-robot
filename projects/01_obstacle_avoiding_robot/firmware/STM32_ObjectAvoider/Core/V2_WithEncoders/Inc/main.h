@@ -6,9 +6,10 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <math.h>
 #include "stm32f4xx_hal.h"
 
-#define PWM_PERIOD              50000
+#define PWM_PERIOD              2500
 
 #define US_GPIO_PORT			GPIOA
 #define US_TRIG_PIN				GPIO_PIN_8
@@ -45,6 +46,12 @@
 #define LEFT_ENCB_PIN           GPIO_PIN_9
 #define LEFT_ENCB_CHANNEL       TIM_CHANNEL_4
 
+// Encoder constants
+#define TICKS_PER_ROTATION      13
+#define GEAR_RATIO              20.409f
+#define S_ELAPSED               0.1f
+
+
 #define USART3_TX_PORT          GPIOB
 #define USART3_TX_PIN           GPIO_PIN_10
 
@@ -59,17 +66,28 @@ typedef enum
 } ActionType;
 
 typedef struct {
+    float prev_err;
+    float i_value;
+} PID_State;
+
+typedef struct {
 	volatile int32_t ticks;
 	volatile int32_t prev_ticks;
 	volatile float tick_rate;
 	volatile float current_rpm;
     volatile int32_t target_rpm;
     int32_t final_target_rpm; // used to for smoother motor speed setting
+    float starting_rpm;
+    PID_State pid;
+
+    // Debugging
+    uint8_t id;
 } Encoder;
 
-void Perform_Action(uint32_t speed, ActionType type);
+void Drive_Motor(uint32_t rpm, ActionType type);
 void motor_direction_config(ActionType type);
-int32_t Get_PID_Offset(int32_t target_rpm, float current_rpm, float s_elapsed);
+float Get_PID_Correction(Encoder* enc);
+void Stop_Robot();
 
 // ultrasonic
 uint32_t get_distance(void);
@@ -86,5 +104,6 @@ void SystemClock_Config(void);
 // debugging
 void UART3_Init(void);
 void Error_Handler(void);
+void Send_Msg(char* msg);
 
 #endif

@@ -17,3 +17,11 @@ void UART3_Init(void)
 		Error_Handler();
 	}
 }
+
+void Send_Msg(char* msg)
+{
+	if (HAL_UART_Transmit(&huart3, (uint8_t*) msg, strlen(msg), 0xFFFF) != HAL_OK)
+	{
+		Error_Handler();
+	} 
+}

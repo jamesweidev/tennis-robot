@@ -5,19 +5,69 @@ TIM_HandleTypeDef htim2 = {0};
 extern Encoder right_encoder;
 extern Encoder left_encoder;
 
-void Perform_Action(uint32_t rpm, ActionType type)
+void Drive_Motor(uint32_t rpm, ActionType type)
 {
-	motor_direction_config(type);
+	// Completely reset both encoders when rpm is set to 0
+	// 
+	if (rpm == 0)
+	{
+		right_encoder = (Encoder) {.id=1};
+		left_encoder = (Encoder) {0};
+		return;
+	}
 
-	right_encoder.final_target_rpm = rpm;
-	left_encoder.final_target_rpm = rpm;
+	right_encoder.starting_rpm = right_encoder.current_rpm;
+	left_encoder.starting_rpm = left_encoder.current_rpm;
+
+	// Adjust the sign of rpm based on the specified direction
+	// Defaults to positive, changes to negative if needed
+	uint32_t r_rpm = rpm;
+	uint32_t l_rpm = rpm;
+	if (type == ACTION_RIGHT || type == ACTION_BACKWARD)
+	{
+		r_rpm = -rpm;
+	}
+	if (type == ACTION_LEFT || type == ACTION_BACKWARD)
+	{
+		l_rpm = -rpm;
+	}
+
+	// New rpm is different from previous. Otherwise no reason to reset i value
+	if (right_encoder.final_target_rpm != r_rpm)
+	{
+		// Reset the PID i Value so it doesn't bleed into the next rpm
+		right_encoder.pid.i_value = 0;
+
+		// The base duty cycle is 10%, which results in ~120 rpm
+		// So start the target rpm at 150 so PID doesnt overshoot
+		// Or if rpm is less than rpm start at rpm
+		right_encoder.target_rpm = (rpm < 150) ? rpm : 0;
+	}
+	// Same for the left motor
+	if (left_encoder.final_target_rpm != l_rpm)
+	{
+		left_encoder.pid.i_value = 0;
+
+		left_encoder.target_rpm = (rpm < 150) ? rpm : 0;
+	}
+
+	// Set the final RPM
+	right_encoder.final_target_rpm = r_rpm;
+	left_encoder.final_target_rpm = l_rpm;
+
+	motor_direction_config(type);
+}
+
+void Stop_Robot()
+{
+	Drive_Motor(0, ACTION_STOP);
 }
 
 void TIM2_PWM_Init(void)
 {
 	TIM_OC_InitTypeDef pwm_init = {0};
 
-	// Period of 20kHz
+	// 20kHz Frequency
 	htim2.Instance = TIM2;
 	htim2.Init.Period = PWM_PERIOD - 1;
 	htim2.Init.Prescaler = 1 - 1;

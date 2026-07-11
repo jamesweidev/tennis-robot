@@ -63,12 +63,12 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
 void HAL_TIM_IC_MspInit(TIM_HandleTypeDef *htim)
 {
     // Initialize encoder pins
-    __HAL_RCC_TIM2_CLK_ENABLE();
-    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_TIM4_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
 
     GPIO_InitTypeDef gpio_init;
 
-    gpio_init.Alternate = GPIO_AF1_TIM2;
+    gpio_init.Alternate = GPIO_AF2_TIM4;
     gpio_init.Mode = GPIO_MODE_AF_PP;
     gpio_init.Pull = GPIO_NOPULL;
     gpio_init.Speed = GPIO_SPEED_FREQ_MEDIUM;
@@ -77,22 +77,22 @@ void HAL_TIM_IC_MspInit(TIM_HandleTypeDef *htim)
     gpio_init.Pin = RIGHT_ENCA_PIN;
     HAL_GPIO_Init(RIGHT_ENCA_PORT, &gpio_init);
 
-    // RIGHT ENB (not used for interrupt)
-    gpio_init.Pin = RIGHT_ENCB_PIN;
-    gpio_init.Mode = GPIO_MODE_INPUT;
-    HAL_GPIO_Init(RIGHT_ENCA_PORT, &gpio_init);
-
     // LEFT ENA
     gpio_init.Pin = LEFT_ENCA_PIN;
     HAL_GPIO_Init(LEFT_ENCA_PORT, &gpio_init);
 
+    // RIGHT ENB (not used for interrupt)
+    gpio_init.Pin = RIGHT_ENCB_PIN;
+    gpio_init.Mode = GPIO_MODE_INPUT;
+    HAL_GPIO_Init(RIGHT_ENCB_PORT, &gpio_init);
+
     // LEFT ENB (not used for interrupt)
     gpio_init.Pin = LEFT_ENCB_PIN;
     gpio_init.Mode = GPIO_MODE_INPUT;
-    HAL_GPIO_Init(LEFT_ENCA_PORT, &gpio_init);
+    HAL_GPIO_Init(LEFT_ENCB_PORT, &gpio_init);
 
-    HAL_NVIC_SetPriority(TIM2_IRQn, 15, 0);
-    HAL_NVIC_EnableIRQ(TIM2_IRQn);
+    HAL_NVIC_SetPriority(TIM4_IRQn, 15, 0);
+    HAL_NVIC_EnableIRQ(TIM4_IRQn);
 }
 
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
@@ -122,4 +122,9 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart)
     // Enable UART interrupts
     HAL_NVIC_SetPriority(USART3_IRQn, 15, 0);
     HAL_NVIC_EnableIRQ(USART3_IRQn);
+
+    // Debugging external LED GPIO
+    gpio_config.Mode = GPIO_MODE_OUTPUT_PP;
+    gpio_config.Pin = GPIO_PIN_10;
+    HAL_GPIO_Init(GPIOA, &gpio_config);
 }
