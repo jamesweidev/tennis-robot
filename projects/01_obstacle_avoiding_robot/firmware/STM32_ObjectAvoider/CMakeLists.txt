@@ -124,5 +124,30 @@ target_link_options(V2_WithEncoders PRIVATE
     -u _printf_float
 )
 
+
+#################### IMUTesting ####################
+add_executable(IMUTesting
+    Core/IMUTesting/Src/main.c
+    Core/IMUTesting/Src/stm32f4xx_hal_msp.c
+    Core/IMUTesting/Src/stm32f4xx_it.c
+)
+
+target_include_directories(IMUTesting PRIVATE
+    Core/IMUTesting/Inc
+)
+
+target_link_libraries(IMUTesting PRIVATE
+    STM32_Drivers
+)
+
+target_compile_options(IMUTesting PRIVATE
+    ${FPU_COMPILE_FLAGS}
+)
+
+target_link_options(IMUTesting PRIVATE
+    ${FPU_COMPILE_FLAGS}
+    -u _printf_float
+)
+
 # Remove wrong libob.a library dependency when using cpp files
 list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)

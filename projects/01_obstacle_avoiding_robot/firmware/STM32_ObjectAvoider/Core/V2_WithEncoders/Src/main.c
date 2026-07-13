@@ -60,19 +60,19 @@ int main(void)
 
 		HAL_Delay(200);
 
-		// if (distance >= 500 || distance == 0)
-		// {
-		// 	// Sensor times out and returns 0 if It's too far from the closest object
-		// 	// So robot should go forward when distance == 0
-		// 	Drive_Motor(300, ACTION_FORWARD);
-		// } else if (distance >= 150)
-		// {
-		// 	Drive_Motor(300, ACTION_RIGHT);
-		// } else 
-		// {
-		// 	Drive_Motor(300, ACTION_BACKWARD);
-		// 	HAL_Delay(100);
-		// }
+		if (distance >= 500 || distance == 0)
+		{
+			// Sensor times out and returns 0 if It's too far from the closest object
+			// So robot should go forward when distance == 0
+			Drive_Motor(300, ACTION_FORWARD);
+		} else if (distance >= 150)
+		{
+			Drive_Motor(300, ACTION_RIGHT);
+		} else 
+		{
+			Drive_Motor(300, ACTION_BACKWARD);
+			HAL_Delay(100);
+		}
 
 	}
 	return 0;

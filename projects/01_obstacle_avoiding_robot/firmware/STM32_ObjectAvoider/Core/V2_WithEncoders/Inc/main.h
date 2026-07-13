@@ -79,7 +79,7 @@ typedef struct {
     int32_t final_target_rpm; // used to for smoother motor speed setting
     float starting_rpm;
     PID_State pid;
-
+    
     // Debugging
     uint8_t id;
 } Encoder;

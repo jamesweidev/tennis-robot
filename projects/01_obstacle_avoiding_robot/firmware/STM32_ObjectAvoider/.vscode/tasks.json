@@ -56,6 +56,20 @@
         "-rst"
       ],
       "problemMatcher": []
+    },
+    {
+      "label": "STM32 Flash: IMUTesting",
+      "type": "shell",
+      "command": "/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/Resources/bin/STM32_Programmer_CLI",
+      "args": [
+        "-c",
+        "port=SWD",
+        "-w",
+        "${workspaceFolder}/build/Debug/IMUTesting.elf",
+        "-v",
+        "-rst"
+      ],
+      "problemMatcher": []
     }
   ]
 }
