@@ -1,43 +1,19 @@
 #include "main.h"
+#include "stm32f4xx_hal_i2c.h"
 #include "stm32f4xx_hal_tim.h"
 
 
-#define PWM_PERIOD 			50000
 
-void TIM2_init(void);
 void SystemClock_Config(void);
 void Error_Handler(void);
-
-// Motor
-void Move_Forward(uint32_t target_rpm);
-void TIM3_PWM_Init(void);
-void Set_Motor(int32_t pwm_value);
-
 
 // debug
 void GPIO_init(void);
 void UART1_init(void);
 UART_HandleTypeDef huart1 = {0};
 
-TIM_HandleTypeDef htim2 = {0};
-
-TIM_HandleTypeDef htim3 = {0};
-TIM_OC_InitTypeDef pwm_config = {0};
-
-volatile int32_t ticks = 0;
-volatile int32_t prev_ticks = 0;
-volatile float tick_rate = 0;
-volatile float current_rpm = 0;
-
-int32_t target_rpm = 0;
-int32_t final_target_rpm = 0;
-
-float prev_err = 0;
-float i_value = 0;
-
-volatile int32_t offset = 0;
-
-volatile uint32_t seconds = 0;
+// IMU
+void IMU_I2C_Init(void);
 
 char msg[128];
 
@@ -45,15 +21,10 @@ int main(void)
 {
 	HAL_Init();
 	SystemClock_Config(); // 50MHz Sysclk, 50MHz AHB, 25MHz APB1, 50MHz APB2
-	
-	TIM2_init();
-	TIM3_PWM_Init();
 
 	// Debugging
 	GPIO_init();
 	UART1_init();
-
-	Move_Forward(350);
 
 	while (1)
 	{
@@ -67,148 +38,13 @@ int main(void)
 	return 0;
 }
 
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+void IMU_I2C_Init(void)
 {
-	// Encoder A was triggered
+	I2C_InitTypeDef i2c_init;
 
-	// If pin B is already on, then its counterclockwise
-	if (HAL_GPIO_ReadPin(ENCB_PORT, ENCB_PIN))
-	{
-		ticks--;
-	} else
-	{
-		ticks++;
-	}
+	i2c_init.AddressingMode
 }
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-	if (target_rpm < final_target_rpm)
-	{
-		target_rpm += final_target_rpm * 0.2;
-	} else
-	{
-		target_rpm = final_target_rpm;
-	}
-
-	float s_elapsed = 0.1f;
-	// 20ms elapsed, calculate ticks per second & RPM
-	tick_rate = (ticks - prev_ticks) / s_elapsed;
-	prev_ticks = ticks;
-
-	current_rpm = (tick_rate * 60) / (13 * 20.409f);
-
-
-	// Run PID
-	float pK = 160;
-	float dK = 0;
-	float iK = 120;
-
-	float err = target_rpm - current_rpm;
-
-	float d_value = (err - prev_err) / s_elapsed;
-	i_value = (i_value + err * s_elapsed);
-
-	offset = pK * err + dK * d_value + iK * i_value;
-
-	prev_err = err;
-
-	Set_Motor(offset);
-}	
-
-void Set_Motor(int32_t pwm_value)
-{
-	uint8_t IN1 = GPIO_PIN_SET;
-	uint8_t IN2 = GPIO_PIN_RESET;
-
-	if (pwm_value < 0)
-	{
-		IN1 = GPIO_PIN_RESET;
-		IN2 = GPIO_PIN_SET;
-
-		pwm_value *= -1;
-	}
-
-	if (pwm_value > PWM_PERIOD)
-	{
-		pwm_value = PWM_PERIOD;
-	}
-
-	__HAL_TIM_SET_COMPARE(&htim3, PWM_CHANNEL, pwm_value);
-
-	HAL_GPIO_WritePin(IN1_PORT, IN1_PIN, IN1);
-	HAL_GPIO_WritePin(IN1_PORT, IN2_PIN, IN2);
-}
-
-void Move_Forward(uint32_t rpm_target)
-{
-	target_rpm = 0;
-	final_target_rpm = rpm_target;
-}
-
-void TIM2_init(void)
-{
-	TIM_IC_InitTypeDef tim2_config = {0};
-
-	tim2_config.ICFilter = 0;
-	tim2_config.ICPolarity = TIM_ICPOLARITY_RISING;
-	tim2_config.ICPrescaler = TIM_ICPSC_DIV1;
-	tim2_config.ICSelection = TIM_ICSELECTION_DIRECTTI;
-
-	htim2.Init.Period = 100000;
-	htim2.Init.Prescaler = 50 - 1;
-	htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim2.Instance = TIM2;
-
-	if (HAL_TIM_IC_Init(&htim2) != HAL_OK)
-	{
-		Error_Handler();
-	}
-
-	if (HAL_TIM_IC_ConfigChannel(&htim2, &tim2_config, ENCA_CHANNEL) != HAL_OK)
-	{
-		Error_Handler();
-	}
-
-	if (HAL_TIM_IC_Start_IT(&htim2, ENCA_CHANNEL) != HAL_OK)
-	{
-		Error_Handler();
-	}
-
-	// Base Timer
-	if (HAL_TIM_Base_Start_IT(&htim2) != HAL_OK)
-	{
-		Error_Handler();
-	}
-}
-
-
-void TIM3_PWM_Init(void)
-{
-	htim3.Instance = TIM3;
-	htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim3.Init.Period = PWM_PERIOD - 1;
-	htim3.Init.Prescaler = 1 - 1;
-
-	pwm_config.OCMode = TIM_OCMODE_PWM1;
-	pwm_config.OCPolarity = TIM_OCPOLARITY_HIGH;
-	pwm_config.Pulse = PWM_PERIOD * 0.6f;
-
-	if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
-	{
-		Error_Handler();
-	}
-
-	if (HAL_TIM_PWM_ConfigChannel(&htim3, &pwm_config, PWM_CHANNEL) != HAL_OK)
-	{
-		Error_Handler();
-	}
-
-	if (HAL_TIM_PWM_Start(&htim3, PWM_CHANNEL) != HAL_OK)
-	{
-		Error_Handler();
-	}
-}
 
 void SystemClock_Config(void)
 {
