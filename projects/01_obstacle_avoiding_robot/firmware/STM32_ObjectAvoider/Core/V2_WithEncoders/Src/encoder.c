@@ -65,13 +65,16 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 	{
 		// Left Encoder A was triggered
 		// If pin B is already on, then its counterclockwise
-		if (HAL_GPIO_ReadPin(RIGHT_ENCB_PORT, RIGHT_ENCB_PIN))
-		{
-			right_encoder.ticks--;
-		} else
-		{
-			right_encoder.ticks++;
-		}
+
+		// if (HAL_GPIO_ReadPin(RIGHT_ENCB_PORT, RIGHT_ENCB_PIN))
+		// {
+		// 	right_encoder.ticks--;
+		// } else
+		// {
+		// 	right_encoder.ticks++;
+		// }
+
+		right_encoder.ticks++;
 	} else if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
 	{
 		// Right Encoder A was triggered
@@ -97,8 +100,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		Update_Encoder(&right_encoder);
 		Update_Encoder(&left_encoder);
 
-		__HAL_TIM_SET_COMPARE(&htim2, PWMA_CHANNEL, Get_Compare(&right_encoder));
-		__HAL_TIM_SET_COMPARE(&htim2, PWMB_CHANNEL, Get_Compare(&left_encoder));
+		__HAL_TIM_SET_COMPARE(&htim2, right_encoder.active_pwm_channel, 0);
+		__HAL_TIM_SET_COMPARE(&htim2, left_encoder.active_pwm_channel, Get_Compare(&left_encoder));
 	}
 }
 
@@ -119,6 +122,13 @@ static uint32_t Get_Compare(Encoder* enc)
 	if (duty < 0) duty = 0;
 
 	uint32_t compare = (uint32_t) (PWM_PERIOD * duty);
+
+    printf("RPM: %.2f CTarget: %ld offset: %.2f compare: %.2f\r\n", 
+        enc->current_rpm,
+        enc->target_rpm,
+        correction,
+		compare / PWM_PERIOD
+    );
 
 	return compare;
 }

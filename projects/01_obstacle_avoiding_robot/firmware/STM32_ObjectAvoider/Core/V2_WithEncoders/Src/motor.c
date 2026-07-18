@@ -7,15 +7,6 @@ extern Encoder left_encoder;
 
 void Drive_Motor(uint32_t rpm, ActionType type)
 {
-	// Completely reset both encoders when rpm is set to 0
-	// 
-	if (rpm == 0)
-	{
-		right_encoder = (Encoder) {.id=1};
-		left_encoder = (Encoder) {0};
-		return;
-	}
-
 	right_encoder.starting_rpm = right_encoder.current_rpm;
 	left_encoder.starting_rpm = left_encoder.current_rpm;
 
@@ -38,20 +29,17 @@ void Drive_Motor(uint32_t rpm, ActionType type)
 		// Reset the PID i Value so it doesn't bleed into the next rpm
 		right_encoder.pid.i_value = 0;
 
-		// The base duty cycle is 10%, which results in ~120 rpm
-		// So start the target rpm at 150 so PID doesnt overshoot
-		// Or if rpm is less than rpm start at rpm
-		right_encoder.target_rpm = (rpm < 150) ? rpm : 0;
+		right_encoder.target_rpm = 0;
 	}
 	// Same for the left motor
 	if (left_encoder.final_target_rpm != l_rpm)
 	{
 		left_encoder.pid.i_value = 0;
 
-		left_encoder.target_rpm = (rpm < 150) ? rpm : 0;
+		left_encoder.target_rpm = 0;
 	}
 
-	// Set the final RPM
+	// Set the final RPM target
 	right_encoder.final_target_rpm = r_rpm;
 	left_encoder.final_target_rpm = l_rpm;
 
@@ -60,7 +48,16 @@ void Drive_Motor(uint32_t rpm, ActionType type)
 
 void Stop_Robot()
 {
-	Drive_Motor(0, ACTION_STOP);
+	// Rest all encoder values so they don't bleed into future speed settings
+	right_encoder = (Encoder) {.id=1};
+	left_encoder = (Encoder) {0};
+
+	// Set all motor driver IN pins to a logical 1
+	// According to doc this brakes by shorting output to ground
+	__HAL_TIM_SET_COMPARE(&htim2, AIN1_CHANNEL, PWM_PERIOD);
+	__HAL_TIM_SET_COMPARE(&htim2, AIN2_CHANNEL, PWM_PERIOD);
+	__HAL_TIM_SET_COMPARE(&htim2, BIN1_CHANNEL, PWM_PERIOD);
+	__HAL_TIM_SET_COMPARE(&htim2, BIN2_CHANNEL, PWM_PERIOD);
 }
 
 void TIM2_PWM_Init(void)
@@ -82,23 +79,44 @@ void TIM2_PWM_Init(void)
 	}
 
 	// Right PWM config
-	if (HAL_TIM_PWM_ConfigChannel(&htim2, &pwm_init, PWMA_CHANNEL) != HAL_OK)
+	// AIN1
+	if (HAL_TIM_PWM_ConfigChannel(&htim2, &pwm_init, AIN1_CHANNEL) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	if (HAL_TIM_PWM_Start(&htim2, AIN1_CHANNEL) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	// AIN2
+	if (HAL_TIM_PWM_ConfigChannel(&htim2, &pwm_init, AIN2_CHANNEL) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	if (HAL_TIM_PWM_Start(&htim2, AIN2_CHANNEL) != HAL_OK)
 	{
 		Error_Handler();
 	}
 
-	if (HAL_TIM_PWM_Start(&htim2, PWMA_CHANNEL) != HAL_OK)
-	{
-		Error_Handler();
-	}
+	__HAL_TIM_SET_COMPARE(&htim2, AIN1_CHANNEL, 0);
+	__HAL_TIM_SET_COMPARE(&htim2, AIN2_CHANNEL, 0);
 
 	// Left PWM config
-	if (HAL_TIM_PWM_ConfigChannel(&htim2, &pwm_init, PWMB_CHANNEL) != HAL_OK)
+	// BIN1
+	if (HAL_TIM_PWM_ConfigChannel(&htim2, &pwm_init, BIN1_CHANNEL) != HAL_OK)
 	{
 		Error_Handler();
 	}
-
-	if (HAL_TIM_PWM_Start(&htim2, PWMB_CHANNEL) != HAL_OK)
+	if (HAL_TIM_PWM_Start(&htim2, BIN1_CHANNEL) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	// BIN2
+	if (HAL_TIM_PWM_ConfigChannel(&htim2, &pwm_init, BIN2_CHANNEL) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	if (HAL_TIM_PWM_Start(&htim2, BIN2_CHANNEL) != HAL_OK)
 	{
 		Error_Handler();
 	}
@@ -109,33 +127,19 @@ void motor_direction_config(ActionType type)
 	// Sets motor driver direction pins
 	if (type == ACTION_FORWARD)
 	{
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, AIN1_PIN, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, AIN2_PIN, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, BIN1_PIN, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, BIN2_PIN, GPIO_PIN_SET);
+		right_encoder.active_pwm_channel = AIN1_CHANNEL;
+		left_encoder.active_pwm_channel = BIN1_CHANNEL;
 	} else if (type == ACTION_BACKWARD)
 	{
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, AIN1_PIN, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, AIN2_PIN, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, BIN1_PIN, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, BIN2_PIN, GPIO_PIN_RESET);
+		right_encoder.active_pwm_channel = AIN2_CHANNEL;
+		left_encoder.active_pwm_channel = BIN2_CHANNEL;
 	} else if (type == ACTION_LEFT)
 	{
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, AIN1_PIN, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, AIN2_PIN, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, BIN1_PIN, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, BIN2_PIN, GPIO_PIN_RESET);
+		right_encoder.active_pwm_channel = AIN1_CHANNEL;
+		left_encoder.active_pwm_channel = BIN2_CHANNEL;
 	} else if (type == ACTION_RIGHT)
 	{
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, AIN1_PIN, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, AIN2_PIN, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, BIN1_PIN, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, BIN2_PIN, GPIO_PIN_SET);
-	} else if (type == ACTION_STOP)
-	{
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, AIN1_PIN, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, AIN2_PIN, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, BIN1_PIN, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, BIN2_PIN, GPIO_PIN_RESET);
+		right_encoder.active_pwm_channel = AIN2_CHANNEL;
+		left_encoder.active_pwm_channel = BIN1_CHANNEL;
 	}
 }

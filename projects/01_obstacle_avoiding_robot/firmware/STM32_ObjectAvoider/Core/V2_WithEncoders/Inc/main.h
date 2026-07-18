@@ -15,19 +15,20 @@
 #define US_TRIG_PIN				GPIO_PIN_8
 #define US_ECHO_PIN 			GPIO_PIN_9
 
-#define PWMA_PORT		        GPIOA
-#define PWMA_PIN			    GPIO_PIN_0
-#define PWMA_CHANNEL            TIM_CHANNEL_1
 
-#define PWMB_PORT		        GPIOA
-#define PWMB_PIN			    GPIO_PIN_1
-#define PWMB_CHANNEL            TIM_CHANNEL_2
+// New motor driver pins
+#define RIGHT_MOTOR_DRIVER_PORT GPIOA
+#define AIN1_PIN				GPIO_PIN_0
+#define AIN1_CHANNEL            TIM_CHANNEL_1
+#define AIN2_PIN				GPIO_PIN_1
+#define AIN2_CHANNEL            TIM_CHANNEL_2
 
-#define MOTOR_DRIVER_IN_PORT	GPIOA
-#define AIN1_PIN				GPIO_PIN_6
-#define AIN2_PIN				GPIO_PIN_7
-#define BIN1_PIN				GPIO_PIN_4
-#define BIN2_PIN				GPIO_PIN_5
+#define LEFT_MOTOR_DRIVER_PORT  GPIOB
+#define BIN1_PIN				GPIO_PIN_10
+#define BIN1_CHANNEL            TIM_CHANNEL_3
+#define BIN2_PIN				GPIO_PIN_2
+#define BIN2_CHANNEL            TIM_CHANNEL_4
+
 
 // Encoder IC is on TIM4
 #define RIGHT_ENCA_PORT         GPIOB
@@ -52,7 +53,7 @@
 #define S_ELAPSED               0.1f
 
 
-#define USART3_TX_PORT          GPIOB
+#define USART3_TX_PORT          GPIOC
 #define USART3_TX_PIN           GPIO_PIN_10
 
 // Directions
@@ -79,6 +80,7 @@ typedef struct {
     int32_t final_target_rpm; // used to for smoother motor speed setting
     float starting_rpm;
     PID_State pid;
+    uint32_t active_pwm_channel;
     
     // Debugging
     uint8_t id;
@@ -104,6 +106,5 @@ void SystemClock_Config(void);
 // debugging
 void UART3_Init(void);
 void Error_Handler(void);
-void Send_Msg(char* msg);
 
 #endif

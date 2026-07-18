@@ -33,30 +33,17 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
         gpio_init.Pull = GPIO_NOPULL;
         gpio_init.Speed = GPIO_SPEED_FREQ_LOW;
 
-        // Right PWM Channel Pin
-        gpio_init.Pin = PWMA_PIN;
-        HAL_GPIO_Init(PWMA_PORT, &gpio_init);
-
-        // Left PWM Channel Pin
-        gpio_init.Pin = PWMB_PIN;
-        HAL_GPIO_Init(PWMB_PORT, &gpio_init);
-
-        // Configure motor driver direction pins
-        gpio_init.Mode = GPIO_MODE_OUTPUT_PP;
-        gpio_init.Pull = GPIO_NOPULL;
-        gpio_init.Speed = GPIO_SPEED_FREQ_LOW;
-        // AIN1
+        // Right motor control pins
         gpio_init.Pin = AIN1_PIN;
-        HAL_GPIO_Init(MOTOR_DRIVER_IN_PORT, &gpio_init);
-        // IN2
+        HAL_GPIO_Init(RIGHT_MOTOR_DRIVER_PORT, &gpio_init);
         gpio_init.Pin = AIN2_PIN;
-        HAL_GPIO_Init(MOTOR_DRIVER_IN_PORT, &gpio_init);
-        // IN3
+        HAL_GPIO_Init(RIGHT_MOTOR_DRIVER_PORT, &gpio_init);
+
+        // Left motor control pins
         gpio_init.Pin = BIN1_PIN;
-        HAL_GPIO_Init(MOTOR_DRIVER_IN_PORT, &gpio_init);
-        // IN4
+        HAL_GPIO_Init(LEFT_MOTOR_DRIVER_PORT, &gpio_init);
         gpio_init.Pin = BIN2_PIN;
-        HAL_GPIO_Init(MOTOR_DRIVER_IN_PORT, &gpio_init);
+        HAL_GPIO_Init(LEFT_MOTOR_DRIVER_PORT, &gpio_init);
     }
 }
 
@@ -107,7 +94,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart)
 {
     // Enable USART3 and GPIOB clock
     __HAL_RCC_USART3_CLK_ENABLE();
-    __HAL_RCC_GPIOB_CLK_ENABLE();
+    __HAL_RCC_GPIOC_CLK_ENABLE();
 
     // Enable TX and RX GPIOs and set the appropriate alternate function
     GPIO_InitTypeDef gpio_config = {0};

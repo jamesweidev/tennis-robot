@@ -1,4 +1,5 @@
 #include "main.h"
+#include "stm32f4xx_hal_def.h"
 
 UART_HandleTypeDef huart3 = {0};
 
@@ -18,10 +19,12 @@ void UART3_Init(void)
 	}
 }
 
-void Send_Msg(char* msg)
+int _write(int file, char* data, int len)
 {
-	if (HAL_UART_Transmit(&huart3, (uint8_t*) msg, strlen(msg), 0xFFFF) != HAL_OK)
+	if (HAL_UART_Transmit(&huart3, (uint8_t*) data, (uint16_t) len, HAL_MAX_DELAY) != HAL_OK)
 	{
-		Error_Handler();
+		return -1;
 	} 
+
+	return len;
 }

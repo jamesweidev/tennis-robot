@@ -57,7 +57,7 @@ Incorporate encoder feedback loop and allow the robot to go in straight line
 ## Hardware Changes From V1
 
 - New motor with encoder
-- Use TB6612FNG instead of L298N for more efficiency and less heat in the chassis
+- Use MPQ6612A instead of L298N for more efficiency and more current headroom
 - Uses a smaller Li-Po battery rather than the other huge and heavy li-ion
 - Updated Chassis
   - Thicker walls and enclose except for the top, significantly improved the structural integrity.

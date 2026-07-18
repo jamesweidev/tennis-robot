@@ -26,7 +26,6 @@ int main(void)
 
 	UART3_Init();
 
-	Send_Msg("\r\n\n\n\n\n\n\n\n\n\n");
 	while (1)
 	{
 		uint32_t samples[5] = {0};
@@ -49,15 +48,6 @@ int main(void)
 
 		uint32_t distance = samples[2];
 
-		sprintf(msg, "RPM: %.2f FTarget: %ld CTarget: %ld i_value: %.2f DISTANCE: %lu\r\n", 
-			right_encoder.current_rpm,
-			right_encoder.final_target_rpm,
-			right_encoder.target_rpm,
-			right_encoder.pid.i_value,
-			distance
-		);
-		Send_Msg(msg);
-
 		HAL_Delay(200);
 
 		if (distance >= 500 || distance == 0)
@@ -67,12 +57,14 @@ int main(void)
 			Drive_Motor(300, ACTION_FORWARD);
 		} else if (distance >= 150)
 		{
-			Drive_Motor(300, ACTION_RIGHT);
+			Drive_Motor(300, ACTION_LEFT);
 		} else 
 		{
-			Drive_Motor(300, ACTION_BACKWARD);
-			HAL_Delay(100);
+			// Drive_Motor(300, ACTION_BACKWARD);
+			// HAL_Delay(100);
+			Drive_Motor(300, ACTION_LEFT);
 		}
+
 
 	}
 	return 0;
