@@ -70,17 +70,15 @@ Incorporate encoder feedback loop and allow the robot to go in straight line
 |---|---|---|---|
 | HC-SR04 TRIG | PA8 | GPIO Output | Ultrasonic trigger |
 | HC-SR04 ECHO | PA9 | GPIO Input | Ultrasonic echo input |
-| TB6612FNG AIN1 | PA6 | GPIO Output | Right motor direction |
-| TB6612FNG AIN2 | PA7 | GPIO Output | Right motor direction |
-| TB6612FNG BIN1 | PA4 | GPIO Output | Left motor direction |
-| TB6612FNG BIN2 | PA5 | GPIO Output | Left motor direction |
-| TB6612FNG PWMA | PA0 | TIM2_CH1 PWM | Right motor speed |
-| TB6612FNG PWMB | PA1 | TIM2_CH2 PWM | Left motor speed |
-| TB6612FNG GND | STM32 GND | Ground | Common ground |
+| MPQ6612A AIN1 | PA0 | TIM2_CH1 PWM | Right motor PWM |
+| MPQ6612A AIN2 | PA1 | TIM2_CH2 PWM | Right motor PWM |
+| MPQ6612A BIN1 | PB10 | TIM2_CH3 PWM | Left motor PWM |
+| MPQ6612A BIN2 | PB2 | TIM2_CH4 PWM | Left motor PWM |
+| MPQ6612A GND | STM32 GND | Ground | Common ground |
 | Right ENCA | PB6 | TIM4_CH1 IC | Right motor encoder A |
-| Right ENCB | PB7 | GPIO Input | Right motor encoder A |
+| Right ENCB | PB7 | GPIO Input | Right motor encoder B |
 | Left ENCA | PB8 | TIM4_CH3 IC | Left motor encoder A |
-| Left ENCB | PB9 | GPIO Input | Left motor encoder A |
+| Left ENCB | PB9 | GPIO Input | Left motor encoder B |
 
 
 ## Firmware Changes From V1
