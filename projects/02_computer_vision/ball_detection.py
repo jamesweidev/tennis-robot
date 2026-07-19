@@ -2,6 +2,8 @@ import numpy as np
 import math
 import cv2
 
+from uart_send import uart_send
+
 FOCAL_LENGTH_PX = 1120 / 2
 BALL_DIAMETER_M = 0.067
 
@@ -24,9 +26,6 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 cap.set(cv2.CAP_PROP_FPS, 30)
 cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
 
-print(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-print(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-print(cap.get(cv2.CAP_PROP_FPS))
 
 frame_to_cap = None
 frame_to_cap_with_contours = None
@@ -93,7 +92,14 @@ while True:
         ball_diam_px = best_radius * 2
 
         distance = BALL_DIAMETER_M * FOCAL_LENGTH_PX / ball_diam_px
-        print(f'Distance to the ball is: {distance} meters')
+
+        # Get the ball's angle offset relative to the center of the camera
+        x_offset_px = best_x - cap.get(cv2.CAP_PROP_FRAME_WIDTH) / 2
+        rad_from_center = math.atan(x_offset_px / FOCAL_LENGTH_PX)
+        deg_from_center = math.degrees(rad_from_center)
+
+        uart_send(f'Distance: {distance} m deg: {deg_from_center}\r\n'.encode("utf-8"))
+        print(f'Distance: {distance} m deg: {deg_from_center}')
 
         cv2.circle(frame, (best_x, best_y), int(best_radius), (0, 0, 255), 2, cv2.LINE_AA)
 

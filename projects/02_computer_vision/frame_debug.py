@@ -52,6 +52,7 @@ frame_cpy = frame.copy()
 frame_cpy = cv2.drawContours(frame_cpy, contours, -1, (0,0,255), 3)
 
 cv2.imshow(window_name_unfiltered, frame_cpy)
+print(f"All scores: {scores}\n\n")
 # Only allow contours that at least 70% resembles a circle
 scores = [score for score in scores if score[1] > 0.75]
 
@@ -63,7 +64,6 @@ if len(scores) > 0:
 
     distance = BALL_DIAMETER_M * FOCAL_LENGTH_PX / ball_diam_px
     print(f'Distance to the ball is: {distance} meters')
-    print(f"All scores: {scores}\n\nq")
     print(f"Best score: {scores[0]}")
 
     print(f'bestx: {best_x} besty: {best_y}')
