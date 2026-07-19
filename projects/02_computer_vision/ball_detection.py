@@ -98,7 +98,7 @@ while True:
         rad_from_center = math.atan(x_offset_px / FOCAL_LENGTH_PX)
         deg_from_center = math.degrees(rad_from_center)
 
-        uart_send(f'Distance: {distance} m deg: {deg_from_center}\r\n'.encode("utf-8"))
+        uart_send(f'Distance: {distance:.2f} m deg: {deg_from_center:.2f}\r\n'.encode("utf-8"))
         print(f'Distance: {distance} m deg: {deg_from_center}')
 
         cv2.circle(frame, (best_x, best_y), int(best_radius), (0, 0, 255), 2, cv2.LINE_AA)
