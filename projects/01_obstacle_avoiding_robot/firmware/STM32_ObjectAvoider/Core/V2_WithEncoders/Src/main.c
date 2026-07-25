@@ -26,45 +26,30 @@ int main(void)
 
 	UART3_Init();
 
+	Offset_Position(1, 0);
+
 	while (1)
 	{
-		uint32_t samples[5] = {0};
-		for (uint8_t count = 0; count < 5; count++)
-		{
-			uint32_t raw_distance = get_distance();
 
-			uint8_t i = 0;
-			while (raw_distance < samples[i]) i++;
+		// uint32_t samples[5] = {0};
+		// for (uint8_t count = 0; count < 5; count++)
+		// {
+		// 	uint32_t raw_distance = get_distance();
 
-			uint32_t prev_value = raw_distance;
-			for (uint8_t j = i; j < 5; j++)
-			{
-				uint32_t temp = samples[j];
-				samples[j] = prev_value;
-				prev_value = temp;
-			}
-			HAL_Delay(20);
-		}
+		// 	uint8_t i = 0;
+		// 	while (raw_distance < samples[i]) i++;
 
-		uint32_t distance = samples[2];
+		// 	uint32_t prev_value = raw_distance;
+		// 	for (uint8_t j = i; j < 5; j++)
+		// 	{
+		// 		uint32_t temp = samples[j];
+		// 		samples[j] = prev_value;
+		// 		prev_value = temp;
+		// 	}
+		// 	HAL_Delay(20);
+		// }
 
-		HAL_Delay(200);
-
-		if (distance >= 500 || distance == 0)
-		{
-			// Sensor times out and returns 0 if It's too far from the closest object
-			// So robot should go forward when distance == 0
-			Drive_Motor(300, ACTION_FORWARD);
-		} else if (distance >= 150)
-		{
-			Drive_Motor(300, ACTION_LEFT);
-		} else 
-		{
-			// Drive_Motor(300, ACTION_BACKWARD);
-			// HAL_Delay(100);
-			Drive_Motor(300, ACTION_LEFT);
-		}
-
+		// uint32_t distance = samples[2];
 
 	}
 	return 0;

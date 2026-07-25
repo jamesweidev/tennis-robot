@@ -81,15 +81,19 @@ typedef struct {
     float starting_rpm;
     PID_State pid;
     uint32_t active_pwm_channel;
+    uint32_t inactive_pwm_channel;
     
     // Debugging
     uint8_t id;
 } Encoder;
 
-void Drive_Motor(uint32_t rpm, ActionType type);
-void motor_direction_config(ActionType type);
-float Get_PID_Correction(Encoder* enc);
+// Robot movement
+void Offset_Position(uint32_t forward_m, uint8_t clockwise_degs);
+void Smooth_Drive(ActionType new_action);
+
 void Stop_Robot();
+
+float Get_PID_Correction(Encoder* enc);
 
 // ultrasonic
 uint32_t get_distance(void);

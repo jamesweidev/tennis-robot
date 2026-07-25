@@ -1,9 +1,68 @@
 #include "main.h"
+#include "stm32f4xx_hal.h"
 
 TIM_HandleTypeDef htim2 = {0};
 
 extern Encoder right_encoder;
 extern Encoder left_encoder;
+
+static void Drive_Motor(uint32_t rpm, ActionType type);
+static void motor_direction_config(ActionType type);
+
+ActionType current_action = ACTION_STOP;
+
+
+// Calculate relevant constants outside of function so it doesn't run repeatedly
+// Wheels are 48mm in diameter
+float ticks_per_wheel_rotation = TICKS_PER_ROTATION * GEAR_RATIO;
+float wheel_circumference = 3.14 * 0.048;
+
+/**
+ * @brief Turn clockwise_degs degrees clockwise, then go forward by forward_m meters
+ * 
+ * @param forward_m meters to move forward by
+ * @param clockwise_degs degrees to turn clockwise by
+ */
+void Offset_Position(uint32_t forward_m, uint8_t clockwise_degs)
+{
+	// Stop the robot in case it wasn't already
+	Stop_Robot();
+
+	float ticks_per_m = ticks_per_wheel_rotation / wheel_circumference;
+
+	if (clockwise_degs > 0)
+	{
+
+	}
+
+	uint32_t ticks_offset = ticks_per_m * forward_m;
+	uint32_t start_ticks = right_encoder.ticks;
+
+	// Go forward until the distance has been traversed
+	Smooth_Drive(ACTION_FORWARD);
+	while (right_encoder.ticks - start_ticks < ticks_offset);
+	Stop_Robot();
+}
+
+void Smooth_Drive(ActionType new_action)
+{
+	if (current_action == ACTION_STOP)
+	{
+		Drive_Motor(300, new_action);
+		current_action = new_action;
+		return;
+	}
+
+	if (current_action != new_action)
+	{
+		// If the new action differs from current action
+		// Stop the robot for 800ms first to prevent jitters
+		Stop_Robot();
+		HAL_Delay(800);
+		Drive_Motor(300, new_action);
+		current_action = new_action;
+	}
+}
 
 void Drive_Motor(uint32_t rpm, ActionType type)
 {
@@ -23,7 +82,7 @@ void Drive_Motor(uint32_t rpm, ActionType type)
 		l_rpm = -rpm;
 	}
 
-	// New rpm is different from previous. Otherwise no reason to reset i value
+	// reset i value if new rpm differs from previous. 
 	if (right_encoder.final_target_rpm != r_rpm)
 	{
 		// Reset the PID i Value so it doesn't bleed into the next rpm
@@ -52,12 +111,14 @@ void Stop_Robot()
 	right_encoder = (Encoder) {.id=1};
 	left_encoder = (Encoder) {0};
 
-	// Set all motor driver IN pins to a logical 1
-	// According to doc this brakes by shorting output to ground
-	__HAL_TIM_SET_COMPARE(&htim2, AIN1_CHANNEL, PWM_PERIOD);
-	__HAL_TIM_SET_COMPARE(&htim2, AIN2_CHANNEL, PWM_PERIOD);
-	__HAL_TIM_SET_COMPARE(&htim2, BIN1_CHANNEL, PWM_PERIOD);
-	__HAL_TIM_SET_COMPARE(&htim2, BIN2_CHANNEL, PWM_PERIOD);
+	// Set all motor driver IN pins to a logical 1, making motors coast
+
+	// Setting all to max PWM shorts it to ground, but also makes it jerk
+	// Since not all channels can be set exactly at once
+	__HAL_TIM_SET_COMPARE(&htim2, AIN1_CHANNEL, 0);
+	__HAL_TIM_SET_COMPARE(&htim2, AIN2_CHANNEL, 0);
+	__HAL_TIM_SET_COMPARE(&htim2, BIN1_CHANNEL, 0);
+	__HAL_TIM_SET_COMPARE(&htim2, BIN2_CHANNEL, 0);
 }
 
 void TIM2_PWM_Init(void)
@@ -127,19 +188,31 @@ void motor_direction_config(ActionType type)
 	// Sets motor driver direction pins
 	if (type == ACTION_FORWARD)
 	{
-		right_encoder.active_pwm_channel = AIN1_CHANNEL;
+		right_encoder.active_pwm_channel = AIN2_CHANNEL;
 		left_encoder.active_pwm_channel = BIN1_CHANNEL;
+
+		right_encoder.inactive_pwm_channel = AIN1_CHANNEL;
+		left_encoder.inactive_pwm_channel = BIN2_CHANNEL;
 	} else if (type == ACTION_BACKWARD)
 	{
-		right_encoder.active_pwm_channel = AIN2_CHANNEL;
-		left_encoder.active_pwm_channel = BIN2_CHANNEL;
-	} else if (type == ACTION_LEFT)
-	{
 		right_encoder.active_pwm_channel = AIN1_CHANNEL;
 		left_encoder.active_pwm_channel = BIN2_CHANNEL;
-	} else if (type == ACTION_RIGHT)
+
+		right_encoder.inactive_pwm_channel = AIN2_CHANNEL;
+		left_encoder.inactive_pwm_channel = BIN1_CHANNEL;
+	} else if (type == ACTION_LEFT)
 	{
 		right_encoder.active_pwm_channel = AIN2_CHANNEL;
+		left_encoder.active_pwm_channel = BIN2_CHANNEL;
+
+		right_encoder.inactive_pwm_channel = AIN1_CHANNEL;
+		left_encoder.inactive_pwm_channel = BIN1_CHANNEL;
+	} else if (type == ACTION_RIGHT)
+	{
+		right_encoder.active_pwm_channel = AIN1_CHANNEL;
 		left_encoder.active_pwm_channel = BIN1_CHANNEL;
+
+		right_encoder.inactive_pwm_channel = AIN2_CHANNEL;
+		left_encoder.inactive_pwm_channel = BIN2_CHANNEL;
 	}
 }

@@ -22,6 +22,7 @@ void TIM4_IC_init(void)
 	tim4_ic_config.ICPrescaler = TIM_ICPSC_DIV1;
 	tim4_ic_config.ICSelection = TIM_ICSELECTION_DIRECTTI;
 
+	// 62500 period & 80 presc @ 50MHz is 100ms
 	htim4.Init.Period = 62500 - 1;
 	htim4.Init.Prescaler = 80 - 1;
 	htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
@@ -59,25 +60,29 @@ void TIM4_IC_init(void)
 	}
 }
 
+/**
+ * @brief Increment or decrement ticks each encoder rising edge
+ * 
+ * @param htim 
+ */
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
 	if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
 	{
-		// Left Encoder A was triggered
-		// If pin B is already on, then its counterclockwise
+		// Right Encoder A was triggered
+		// if B is already active, motor is going counter clockwise
+		// right motor needs counter clockwise to move forward
+		if (HAL_GPIO_ReadPin(RIGHT_ENCB_PORT, RIGHT_ENCB_PIN))
+		{
+			right_encoder.ticks--;
+		} else
+		{
+			right_encoder.ticks++;
+		}
 
-		// if (HAL_GPIO_ReadPin(RIGHT_ENCB_PORT, RIGHT_ENCB_PIN))
-		// {
-		// 	right_encoder.ticks--;
-		// } else
-		// {
-		// 	right_encoder.ticks++;
-		// }
-
-		right_encoder.ticks++;
 	} else if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
 	{
-		// Right Encoder A was triggered
+		// Left Encoder A was triggered
 		if (HAL_GPIO_ReadPin(LEFT_ENCB_PORT, LEFT_ENCB_PIN))
 		{
 			left_encoder.ticks++;
@@ -88,6 +93,11 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 	}
 }
 
+/**
+ * @brief Periodically update motor speed based on PID feedback. Runs every 100ms
+ * 
+ * @param htim 
+ */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if (htim->Instance == TIM4)
@@ -100,8 +110,27 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		Update_Encoder(&right_encoder);
 		Update_Encoder(&left_encoder);
 
-		__HAL_TIM_SET_COMPARE(&htim2, right_encoder.active_pwm_channel, 0);
+		// For building rpm plot
+		printf("R RPM %.2f \r\n", 
+			left_encoder.current_rpm
+		);
+		printf("L RPM: %.2f \r\n", 
+			left_encoder.current_rpm
+		);
+
+		// Avoid setting PWM if target rpm is 0
+		// Stop_Robot() already set all channels to 0
+		if (right_encoder.final_target_rpm == 0)
+		{
+			return;
+		}
+
+		__HAL_TIM_SET_COMPARE(&htim2, right_encoder.active_pwm_channel, Get_Compare(&right_encoder));
 		__HAL_TIM_SET_COMPARE(&htim2, left_encoder.active_pwm_channel, Get_Compare(&left_encoder));
+
+		// Set the inactive channels to 0 so previous values wont carry over
+		__HAL_TIM_SET_COMPARE(&htim2, right_encoder.inactive_pwm_channel, 0);
+		__HAL_TIM_SET_COMPARE(&htim2, left_encoder.inactive_pwm_channel, 0);
 	}
 }
 
@@ -123,12 +152,6 @@ static uint32_t Get_Compare(Encoder* enc)
 
 	uint32_t compare = (uint32_t) (PWM_PERIOD * duty);
 
-    printf("RPM: %.2f CTarget: %ld offset: %.2f compare: %.2f\r\n", 
-        enc->current_rpm,
-        enc->target_rpm,
-        correction,
-		compare / PWM_PERIOD
-    );
 
 	return compare;
 }
