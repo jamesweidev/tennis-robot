@@ -6,8 +6,9 @@ Basic STM32 based robot that drives around and avoids hitting objects. Used for 
 ## Versions
 | Version | Feature | Status |
 |---|---|---|
-| v1 | Obstacle Avoidance with HC-SR04 | Done |
-| v2 | With Encoder Feedback Loop | In progress |
+| v1 | Obstacle Avoidance w/ HC-SR04 | Done |
+| v2 | Relative Positioning w/ Encoders | In progress |
+| v3 | V2 w/ Collision Avoidance | Not Started |
 ---
 
 ## Demos
@@ -17,7 +18,7 @@ All demos are (not yet) in 'media/'
 
 1. Drives forward
 2. Measures distance using HC-SR04
-3. Turns or reverses when an object is too close
+3. Either turn or reverse when an object is too close
 
 ## Hardware
 
@@ -49,20 +50,25 @@ Firmware is located at `firmware/STM32_ObjectAvoider/Core/V1_BasicAvoidance`
 - Ultrasonic trigger/echo measurement
 - Basic control logic in main loop
 
+---
 
-## V2: Distance Based PWM Speed Control
+## V2: Relative Positioning w/ Encoder
 
-Incorporate encoder feedback loop and allow the robot to go in straight line
+1. Robot can go straight using encoder feedback loop.
+2. Can move forward a specific distance by counting encoder ticks
 
 ## Hardware Changes From V1
 
-- New motor with encoder
-- Use MPQ6612A instead of L298N for more efficiency and more current headroom
-- Uses a smaller Li-Po battery rather than the other huge and heavy li-ion
+- Wheeltec MG310 motor (With encoder)
+- Use MPQ6612A instead of L298N motor driver
+  - Better efficiency
+  - MG310 motor stall consumes max 2A, but L298N is only rated for 2A continuous, while the MPQ6612A is rated 5A continuous
+- Uses a smaller Li-Po battery rather than the massive li-ion that includes BMS
+- Use a voltage monitor and alert set to 3.3V per cell
 - Updated Chassis
-  - Thicker walls and enclose except for the top, significantly improved the structural integrity.
+  - Thicker walls since V1 was quite fragile
   - Added a power switch mount.
-  - Larger mount for ultrasonic sensor so it doesn't break.
+  - Wider and thicker mount for ultrasonic sensor (ultrasonic sensor is not used for v2)
 
 ## Wiring
 
@@ -84,4 +90,9 @@ Incorporate encoder feedback loop and allow the robot to go in straight line
 ## Firmware Changes From V1
 Firmware is located at `firmware/STM32_ObjectAvoider/Core/V2_WithEncoders`
 
-- Add a timer and feedback loop for the motor encoders
+- Input capture for counting encoder ticks
+- 100ms timer that updates PID values and subsequently the motor speeds
+- Smooth_Drive function that briefly pauses in between direction switches to avoid jitters
+- Offset_Position function that turns by x degrees and moves forward by y meters
+
+---
