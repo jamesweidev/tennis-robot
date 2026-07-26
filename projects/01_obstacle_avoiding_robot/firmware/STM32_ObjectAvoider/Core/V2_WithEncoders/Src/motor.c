@@ -6,7 +6,7 @@ TIM_HandleTypeDef htim2 = {0};
 extern Encoder right_encoder;
 extern Encoder left_encoder;
 
-static void Drive_Motor(uint32_t rpm, ActionType type);
+static void Drive_Motor(int32_t r_rpm, int32_t l_rpm, ActionType type);
 static void motor_direction_config(ActionType type);
 
 ActionType current_action = ACTION_STOP;
@@ -44,11 +44,16 @@ void Offset_Position(uint32_t forward_m, uint8_t clockwise_degs)
 	Stop_Robot();
 }
 
+void Draw_Circle(uint32_t radius)
+{
+	
+}
+
 void Smooth_Drive(ActionType new_action)
 {
 	if (current_action == ACTION_STOP)
 	{
-		Drive_Motor(300, new_action);
+		Drive_Motor(300, 300, new_action);
 		current_action = new_action;
 		return;
 	}
@@ -59,27 +64,25 @@ void Smooth_Drive(ActionType new_action)
 		// Stop the robot for 800ms first to prevent jitters
 		Stop_Robot();
 		HAL_Delay(800);
-		Drive_Motor(300, new_action);
+		Drive_Motor(300, 300, new_action);
 		current_action = new_action;
 	}
 }
 
-void Drive_Motor(uint32_t rpm, ActionType type)
+static void Drive_Motor(int32_t r_rpm, int32_t l_rpm, ActionType type)
 {
 	right_encoder.starting_rpm = right_encoder.current_rpm;
 	left_encoder.starting_rpm = left_encoder.current_rpm;
 
 	// Adjust the sign of rpm based on the specified direction
 	// Defaults to positive, changes to negative if needed
-	uint32_t r_rpm = rpm;
-	uint32_t l_rpm = rpm;
 	if (type == ACTION_RIGHT || type == ACTION_BACKWARD)
 	{
-		r_rpm = -rpm;
+		r_rpm *= -1;
 	}
 	if (type == ACTION_LEFT || type == ACTION_BACKWARD)
 	{
-		l_rpm = -rpm;
+		l_rpm *= -1;
 	}
 
 	// reset i value if new rpm differs from previous. 
@@ -183,7 +186,7 @@ void TIM2_PWM_Init(void)
 	}
 }
 
-void motor_direction_config(ActionType type)
+static void motor_direction_config(ActionType type)
 {
 	// Sets motor driver direction pins
 	if (type == ACTION_FORWARD)
