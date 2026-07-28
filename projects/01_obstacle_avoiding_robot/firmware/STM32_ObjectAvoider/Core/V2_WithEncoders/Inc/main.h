@@ -88,7 +88,7 @@ typedef struct {
 } Encoder;
 
 // Robot movement
-void Offset_Position(uint32_t forward_m, uint8_t clockwise_degs);
+void Offset_Position(float forward_m, float degs);
 void Smooth_Drive(ActionType new_action);
 
 void Draw_Circle(float radius);

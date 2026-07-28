@@ -21,22 +21,45 @@ float wheel_circumference = 3.14 * 0.048;
  * @brief Turn clockwise_degs degrees clockwise, then go forward by forward_m meters
  * 
  * @param forward_m meters to move forward by
- * @param clockwise_degs degrees to turn clockwise by
+ * @param degs degrees to turn by. positive for clockwise, and vice versa
  */
-void Offset_Position(uint32_t forward_m, uint8_t clockwise_degs)
+void Offset_Position(float forward_m, float degs)
 {
 	// Stop the robot in case it wasn't already
 	Stop_Robot();
 
 	float ticks_per_m = ticks_per_wheel_rotation / wheel_circumference;
 
-	if (clockwise_degs > 0)
-	{
+	// From the center of one wheel to the other, 
+	// basically the diameter of the rotation
+	float wheel_to_wheel_m = 0.14;
 
+	// Distance both wheels each have to travel to achieve a 180 deg rotation
+	// which is just half the circumference
+	float distance_180_deg = wheel_to_wheel_m * 3.14f / 2;
+
+	// The distance both wheels actually have to travel in meters
+	float m_to_travel = distance_180_deg * degs / 180;
+
+	// in ticks
+	uint32_t rotate_ticks = abs((int) (m_to_travel * ticks_per_m));
+
+	// Change rotate direction based on deg sign
+	ActionType rotate_dir = ACTION_RIGHT;
+	Encoder *enc = &right_encoder;
+	if (degs < 0)
+	{
+		rotate_dir = ACTION_LEFT;
+		enc = &left_encoder;
 	}
 
+	// Wait until the desired turn is completed
+	uint32_t start_ticks = enc->ticks;
+	Smooth_Drive(rotate_dir);
+	while (enc->ticks - start_ticks < rotate_ticks);
+
 	uint32_t ticks_offset = ticks_per_m * forward_m;
-	uint32_t start_ticks = right_encoder.ticks;
+	start_ticks = right_encoder.ticks;
 
 	// Go forward until the distance has been traversed
 	Smooth_Drive(ACTION_FORWARD);
