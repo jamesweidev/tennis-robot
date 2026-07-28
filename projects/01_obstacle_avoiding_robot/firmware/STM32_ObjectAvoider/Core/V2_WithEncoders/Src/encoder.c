@@ -111,11 +111,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		Update_Encoder(&left_encoder);
 
 		// For building rpm plot
-		printf("R RPM %.2f \r\n", 
-			left_encoder.current_rpm
+		printf("R RPM %.2f ctarget: %ld \r\n", 
+			right_encoder.current_rpm,
+			right_encoder.target_rpm
 		);
-		printf("L RPM: %.2f \r\n", 
-			left_encoder.current_rpm
+		printf("L RPM: %.2f ctarget: %ld \r\n", 
+			left_encoder.current_rpm,
+			left_encoder.target_rpm
 		);
 
 		// Avoid setting PWM if target rpm is 0

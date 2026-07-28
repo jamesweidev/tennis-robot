@@ -91,7 +91,7 @@ typedef struct {
 void Offset_Position(uint32_t forward_m, uint8_t clockwise_degs);
 void Smooth_Drive(ActionType new_action);
 
-void Draw_Circle(uint32_t radius);
+void Draw_Circle(float radius);
 
 void Stop_Robot();
 

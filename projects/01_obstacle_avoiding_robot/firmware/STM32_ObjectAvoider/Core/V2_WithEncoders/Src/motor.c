@@ -44,9 +44,13 @@ void Offset_Position(uint32_t forward_m, uint8_t clockwise_degs)
 	Stop_Robot();
 }
 
-void Draw_Circle(uint32_t radius)
+void Draw_Circle(float radius)
 {
-	
+	float wheel_to_wheel_m = 0.14;
+	uint32_t high_rpm = 400;
+	uint32_t low_rpm = high_rpm * (1 - wheel_to_wheel_m / radius);
+
+	Drive_Motor(high_rpm, low_rpm, ACTION_FORWARD);
 }
 
 void Smooth_Drive(ActionType new_action)
