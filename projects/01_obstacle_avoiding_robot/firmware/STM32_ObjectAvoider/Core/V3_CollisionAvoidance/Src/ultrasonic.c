@@ -24,12 +24,17 @@ void Ultrasonic_GPIO_Init(void)
 	HAL_GPIO_Init(US_GPIO_PORT, &gpio_init);
 }
 
-uint32_t Get_Distance(void)
+/**
+ * @brief Returns the filtered ultrasonic sensor readings in meters
+ * 
+ * @return float 
+ */
+float Get_Distance(void)
 {
 	uint32_t samples[5] = {0};
 	for (uint8_t count = 0; count < 5; count++)
 	{
-		uint32_t raw_distance = Get_Raw_Distance();
+		uint32_t raw_distance = Get_Raw_Distance(); // distance in mm
 
 		uint8_t i = 0;
 		while (raw_distance < samples[i]) i++;
@@ -45,6 +50,10 @@ uint32_t Get_Distance(void)
 	}
 
 	uint32_t distance = samples[2];
+
+	float distance_m = distance / 1000.0f; 
+
+	return distance_m;
 }
 
 static uint32_t Get_Raw_Distance(void)

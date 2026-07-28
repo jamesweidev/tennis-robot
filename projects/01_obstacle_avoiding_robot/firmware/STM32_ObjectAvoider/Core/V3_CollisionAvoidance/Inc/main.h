@@ -121,7 +121,7 @@ void Command_Receive_Callback(void);
 void Update_State(void);
 
 // ultrasonic
-uint32_t Get_Distance(void);
+float Get_Distance(void);
 uint32_t micros(void);
 void delay_us(uint32_t micros);
 
