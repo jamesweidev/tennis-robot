@@ -94,7 +94,6 @@ target_link_options(Testing PRIVATE
     -u _printf_float
 )
 
-
 #################### V3_CollisionAvoidance ####################
 add_executable(V3_CollisionAvoidance
     Core/V3_CollisionAvoidance/Src/main.c
