@@ -16,7 +16,7 @@ float Get_PID_Correction(Encoder* enc)
     float d_value = (err - enc->pid.prev_err) / S_ELAPSED;
 
     // Prevents integral from accumulating while within the deathband
-    float rpm_per_tick = 60 / (TICKS_PER_ROTATION * GEAR_RATIO * S_ELAPSED); // Deathband range
+    float rpm_per_tick = 60 / (TICKS_PER_ROTATION * S_ELAPSED); // Deathband range
     if (fabsf(err) > (rpm_per_tick + 1))
     {
         enc->pid.i_value = (enc->pid.i_value + err * S_ELAPSED);

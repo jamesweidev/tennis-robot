@@ -183,5 +183,5 @@ static void Update_Encoder(Encoder* enc)
 {
 	enc->tick_rate = (enc->ticks - enc->prev_ticks) / S_ELAPSED;
 	enc->prev_ticks = enc->ticks;
-	enc->current_rpm = (enc->tick_rate * 60) / (TICKS_PER_ROTATION * GEAR_RATIO);
+	enc->current_rpm = (enc->tick_rate * 60) / TICKS_PER_ROTATION;
 }

@@ -12,7 +12,7 @@ extern Encoder left_encoder;
 
 extern UART_HandleTypeDef huart3;
 
-char msg[128] = "HELLO MATE";
+char msg[128];
 
 int main(void)
 {
@@ -24,36 +24,20 @@ int main(void)
 	TIM3_Micros_Init();
 	Ultrasonic_GPIO_Init();
 
+	Command_UART6_Init();
+
 	UART3_Init();
 
-	Offset_Position(1, 0);
 
 	while (1)
 	{
+		Update_State();
 
-		// uint32_t samples[5] = {0};
-		// for (uint8_t count = 0; count < 5; count++)
-		// {
-		// 	uint32_t raw_distance = get_distance();
-
-		// 	uint8_t i = 0;
-		// 	while (raw_distance < samples[i]) i++;
-
-		// 	uint32_t prev_value = raw_distance;
-		// 	for (uint8_t j = i; j < 5; j++)
-		// 	{
-		// 		uint32_t temp = samples[j];
-		// 		samples[j] = prev_value;
-		// 		prev_value = temp;
-		// 	}
-		// 	HAL_Delay(20);
-		// }
-
-		// uint32_t distance = samples[2];
-
+		// Receive_Command();
 	}
 	return 0;
 }
+
 
 
 void SystemClock_Config(void)

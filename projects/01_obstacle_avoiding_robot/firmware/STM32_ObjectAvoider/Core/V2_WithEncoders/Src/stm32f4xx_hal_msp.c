@@ -14,7 +14,7 @@ void HAL_MspInit(void)
     HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
     // 2. Enable required system exceptions
     SCB->SHCSR |= 0x7 << 16; // enable usage fault, memory fault, and bus fault system exceptions
-    // 3. configure the prioirty fo rthe system exceptions
+    // 3. configure the prioirty for the system exceptions
 
 }
 
@@ -92,26 +92,48 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
 
 void HAL_UART_MspInit(UART_HandleTypeDef *huart)
 {
-    // Enable USART3 and GPIOB clock
-    __HAL_RCC_USART3_CLK_ENABLE();
-    __HAL_RCC_GPIOC_CLK_ENABLE();
+    if (huart->Instance == USART3)
+    {
+        // Enable USART3 and GPIOB clock
+        __HAL_RCC_USART3_CLK_ENABLE();
+        __HAL_RCC_GPIOC_CLK_ENABLE();
+    
+        // Enable TX and RX GPIOs and set the appropriate alternate function
+        GPIO_InitTypeDef gpio_config = {0};
+        gpio_config.Alternate = GPIO_AF7_USART3;
+        gpio_config.Mode = GPIO_MODE_AF_PP;
+        gpio_config.Pull = GPIO_NOPULL;
+        gpio_config.Speed = GPIO_SPEED_FREQ_MEDIUM;
+    
+        gpio_config.Pin = USART3_TX_PIN;
+        HAL_GPIO_Init(USART3_TX_PORT, &gpio_config);
+    
+        // Enable UART interrupts
+        HAL_NVIC_SetPriority(USART3_IRQn, 15, 0);
+        HAL_NVIC_EnableIRQ(USART3_IRQn);
+    
+        // Debugging external LED GPIO
+        gpio_config.Mode = GPIO_MODE_OUTPUT_PP;
+        gpio_config.Pin = GPIO_PIN_10;
+        HAL_GPIO_Init(GPIOA, &gpio_config);
+    } else if (huart->Instance == USART6)
+    {
+        __HAL_RCC_USART6_CLK_ENABLE();
+        __HAL_RCC_GPIOC_CLK_ENABLE();
 
-    // Enable TX and RX GPIOs and set the appropriate alternate function
-    GPIO_InitTypeDef gpio_config = {0};
-    gpio_config.Alternate = GPIO_AF7_USART3;
-    gpio_config.Mode = GPIO_MODE_AF_PP;
-    gpio_config.Pull = GPIO_NOPULL;
-    gpio_config.Speed = GPIO_SPEED_FREQ_MEDIUM;
+        GPIO_InitTypeDef gpio_config = {0};
+        gpio_config.Alternate = GPIO_AF8_USART6;
+        gpio_config.Mode = GPIO_MODE_AF_PP;
+        gpio_config.Pull = GPIO_NOPULL;
+        gpio_config.Speed = GPIO_SPEED_FREQ_MEDIUM;
 
-    gpio_config.Pin = USART3_TX_PIN;
-    HAL_GPIO_Init(USART3_TX_PORT, &gpio_config);
+        gpio_config.Pin = UART6_TX_PIN;
+        HAL_GPIO_Init(UART6_GPIO_PORT, &gpio_config);
+        gpio_config.Pin = UART6_RX_PIN;
+        HAL_GPIO_Init(UART6_GPIO_PORT, &gpio_config);
 
-    // Enable UART interrupts
-    HAL_NVIC_SetPriority(USART3_IRQn, 15, 0);
-    HAL_NVIC_EnableIRQ(USART3_IRQn);
-
-    // Debugging external LED GPIO
-    gpio_config.Mode = GPIO_MODE_OUTPUT_PP;
-    gpio_config.Pin = GPIO_PIN_10;
-    HAL_GPIO_Init(GPIOA, &gpio_config);
+        // Enable UART interrupts
+        HAL_NVIC_SetPriority(USART6_IRQn, 14, 0);
+        HAL_NVIC_EnableIRQ(USART6_IRQn);
+    }
 }

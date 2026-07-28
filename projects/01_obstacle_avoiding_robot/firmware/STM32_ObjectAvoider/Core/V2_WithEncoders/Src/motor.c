@@ -11,28 +11,16 @@ static void motor_direction_config(ActionType type);
 
 ActionType current_action = ACTION_STOP;
 
-
-// Calculate relevant constants outside of function so it doesn't run repeatedly
-// Wheels are 48mm in diameter
-float ticks_per_wheel_rotation = TICKS_PER_ROTATION * GEAR_RATIO;
-float wheel_circumference = 3.14 * 0.048;
-
 /**
- * @brief Turn clockwise_degs degrees clockwise, then go forward by forward_m meters
+ * @brief Returns the number of motor ticks it would take to rotate degs degrees
  * 
- * @param forward_m meters to move forward by
- * @param degs degrees to turn by. positive for clockwise, and vice versa
+ * @param degs 
  */
-void Offset_Position(float forward_m, float degs)
+uint32_t Get_Turn_Ticks(float degs)
 {
-	// Stop the robot in case it wasn't already
-	Stop_Robot();
-
-	float ticks_per_m = ticks_per_wheel_rotation / wheel_circumference;
-
 	// From the center of one wheel to the other, 
 	// basically the diameter of the rotation
-	float wheel_to_wheel_m = 0.14;
+	float wheel_to_wheel_m = 0.1343;
 
 	// Distance both wheels each have to travel to achieve a 180 deg rotation
 	// which is just half the circumference
@@ -42,30 +30,11 @@ void Offset_Position(float forward_m, float degs)
 	float m_to_travel = distance_180_deg * degs / 180;
 
 	// in ticks
-	uint32_t rotate_ticks = abs((uint32_t) (m_to_travel * ticks_per_m));
+	uint32_t rotate_ticks = abs((uint32_t) (m_to_travel * TICKS_PER_METER));
 
-	// Change rotate direction based on deg sign
-	ActionType rotate_dir = ACTION_RIGHT;
-	Encoder *enc = &right_encoder;
-	if (degs < 0)
-	{
-		rotate_dir = ACTION_LEFT;
-		enc = &left_encoder;
-	}
-
-	// Wait until the desired turn is completed
-	uint32_t start_ticks = enc->ticks;
-	Smooth_Drive(rotate_dir);
-	while (enc->ticks - start_ticks < rotate_ticks);
-
-	uint32_t ticks_offset = ticks_per_m * forward_m;
-	start_ticks = right_encoder.ticks;
-
-	// Go forward until the distance has been traversed
-	Smooth_Drive(ACTION_FORWARD);
-	while (right_encoder.ticks - start_ticks < ticks_offset);
-	Stop_Robot();
+	return rotate_ticks;
 }
+
 
 void Draw_Circle(float radius)
 {
@@ -103,11 +72,11 @@ static void Drive_Motor(int32_t r_rpm, int32_t l_rpm, ActionType type)
 
 	// Adjust the sign of rpm based on the specified direction
 	// Defaults to positive, changes to negative if needed
-	if (type == ACTION_RIGHT || type == ACTION_BACKWARD)
+	if (type == ACTION_RIGHT || type == ACTION_REVERSE)
 	{
 		r_rpm *= -1;
 	}
-	if (type == ACTION_LEFT || type == ACTION_BACKWARD)
+	if (type == ACTION_LEFT || type == ACTION_REVERSE)
 	{
 		l_rpm *= -1;
 	}
@@ -223,7 +192,7 @@ static void motor_direction_config(ActionType type)
 
 		right_encoder.inactive_pwm_channel = AIN1_CHANNEL;
 		left_encoder.inactive_pwm_channel = BIN2_CHANNEL;
-	} else if (type == ACTION_BACKWARD)
+	} else if (type == ACTION_REVERSE)
 	{
 		right_encoder.active_pwm_channel = AIN1_CHANNEL;
 		left_encoder.active_pwm_channel = BIN2_CHANNEL;

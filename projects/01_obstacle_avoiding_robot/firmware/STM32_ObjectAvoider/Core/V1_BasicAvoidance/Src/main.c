@@ -58,7 +58,7 @@ int main(void)
 			Perform_Action(65, ACTION_RIGHT);
 		} else 
 		{
-			Perform_Action(75, ACTION_BACKWARD);
+			Perform_Action(75, ACTION_REVERSE);
 			HAL_Delay(100);
 		}
 
@@ -150,7 +150,7 @@ void motor_direction_config(ActionType type)
 		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, IN2_PIN, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, IN3_PIN, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, IN4_PIN, GPIO_PIN_SET);
-	} else if (type == ACTION_BACKWARD)
+	} else if (type == ACTION_REVERSE)
 	{
 		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, IN1_PIN, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(MOTOR_DRIVER_IN_PORT, IN2_PIN, GPIO_PIN_RESET);

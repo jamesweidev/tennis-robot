@@ -9,58 +9,67 @@
 #include <math.h>
 #include "stm32f4xx_hal.h"
 
-#define PWM_PERIOD              2500
+#define PWM_PERIOD                  2500
 
-#define US_GPIO_PORT			GPIOA
-#define US_TRIG_PIN				GPIO_PIN_8
-#define US_ECHO_PIN 			GPIO_PIN_9
+#define US_GPIO_PORT			    GPIOA
+#define US_TRIG_PIN				    GPIO_PIN_8
+#define US_ECHO_PIN 			    GPIO_PIN_9
 
 
 // New motor driver pins
-#define RIGHT_MOTOR_DRIVER_PORT GPIOA
-#define AIN1_PIN				GPIO_PIN_0
-#define AIN1_CHANNEL            TIM_CHANNEL_1
-#define AIN2_PIN				GPIO_PIN_1
-#define AIN2_CHANNEL            TIM_CHANNEL_2
+#define RIGHT_MOTOR_DRIVER_PORT     GPIOA
+#define AIN1_PIN				    GPIO_PIN_0
+#define AIN1_CHANNEL                TIM_CHANNEL_1
+#define AIN2_PIN				    GPIO_PIN_1
+#define AIN2_CHANNEL                TIM_CHANNEL_2
 
-#define LEFT_MOTOR_DRIVER_PORT  GPIOB
-#define BIN1_PIN				GPIO_PIN_10
-#define BIN1_CHANNEL            TIM_CHANNEL_3
-#define BIN2_PIN				GPIO_PIN_2
-#define BIN2_CHANNEL            TIM_CHANNEL_4
+#define LEFT_MOTOR_DRIVER_PORT      GPIOB
+#define BIN1_PIN				    GPIO_PIN_10
+#define BIN1_CHANNEL                TIM_CHANNEL_3
+#define BIN2_PIN				    GPIO_PIN_2
+#define BIN2_CHANNEL                TIM_CHANNEL_4
 
 
 // Encoder IC is on TIM4
-#define RIGHT_ENCA_PORT         GPIOB
-#define RIGHT_ENCA_PIN          GPIO_PIN_6
-#define RIGHT_ENCA_CHANNEL      TIM_CHANNEL_1
+#define RIGHT_ENCA_PORT             GPIOB
+#define RIGHT_ENCA_PIN              GPIO_PIN_6
+#define RIGHT_ENCA_CHANNEL          TIM_CHANNEL_1
 
-#define RIGHT_ENCB_PORT         GPIOB
-#define RIGHT_ENCB_PIN          GPIO_PIN_7
-#define RIGHT_ENCB_CHANNEL      TIM_CHANNEL_2
+#define RIGHT_ENCB_PORT             GPIOB
+#define RIGHT_ENCB_PIN              GPIO_PIN_7
+#define RIGHT_ENCB_CHANNEL          TIM_CHANNEL_2
 
-#define LEFT_ENCA_PORT          GPIOB
-#define LEFT_ENCA_PIN           GPIO_PIN_8
-#define LEFT_ENCA_CHANNEL       TIM_CHANNEL_3
+#define LEFT_ENCA_PORT              GPIOB
+#define LEFT_ENCA_PIN               GPIO_PIN_8
+#define LEFT_ENCA_CHANNEL           TIM_CHANNEL_3
 
-#define LEFT_ENCB_PORT          GPIOB
-#define LEFT_ENCB_PIN           GPIO_PIN_9
-#define LEFT_ENCB_CHANNEL       TIM_CHANNEL_4
+#define LEFT_ENCB_PORT              GPIOB
+#define LEFT_ENCB_PIN               GPIO_PIN_9
+#define LEFT_ENCB_CHANNEL           TIM_CHANNEL_4
 
-// Encoder constants
-#define TICKS_PER_ROTATION      13
-#define GEAR_RATIO              20.409f
-#define S_ELAPSED               0.1f
+// Drive constants
+#define PRE_GEAR_TICKS              13
+#define GEAR_RATIO                  20.409f
+#define S_ELAPSED                   0.1f
 
+#define WHEEL_DIAM_M                0.048f
+#define WHEEL_CIRCUMFERENCE         (WHEEL_DIAM_M * M_PI)
+#define TICKS_PER_ROTATION          (PRE_GEAR_TICKS * GEAR_RATIO)
+#define TICKS_PER_METER             (TICKS_PER_ROTATION / WHEEL_CIRCUMFERENCE)
 
-#define USART3_TX_PORT          GPIOC
-#define USART3_TX_PIN           GPIO_PIN_10
+// Command UART6
+#define UART6_GPIO_PORT             GPIOC
+#define UART6_TX_PIN                GPIO_PIN_6
+#define UART6_RX_PIN                GPIO_PIN_7
+
+#define USART3_TX_PORT              GPIOC
+#define USART3_TX_PIN               GPIO_PIN_10
 
 // Directions
 typedef enum
 {
     ACTION_FORWARD,
-    ACTION_BACKWARD,
+    ACTION_REVERSE,
     ACTION_LEFT,
     ACTION_RIGHT,
     ACTION_STOP
@@ -87,18 +96,32 @@ typedef struct {
     uint8_t id;
 } Encoder;
 
+typedef enum {
+    STATE_IDLE,
+    TURNING_TO_BALL,
+    DRIVING_TO_BALL,
+    OBSTACLE_DETECTED
+} RobotState;
+
 // Robot movement
-void Offset_Position(float forward_m, float degs);
 void Smooth_Drive(ActionType new_action);
-
 void Draw_Circle(float radius);
-
 void Stop_Robot();
 
 float Get_PID_Correction(Encoder* enc);
 
+uint32_t Get_Turn_Ticks(float degs);
+
+// Command Receive
+void Receive_Command(void);
+void Command_UART6_Init(void);
+void Command_Receive_Callback(void);
+
+// State
+void Update_State(void);
+
 // ultrasonic
-uint32_t get_distance(void);
+uint32_t Get_Distance(void);
 uint32_t micros(void);
 void delay_us(uint32_t micros);
 

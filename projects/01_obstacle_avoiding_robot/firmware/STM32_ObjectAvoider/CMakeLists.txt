@@ -105,6 +105,8 @@ add_executable(V2_WithEncoders
     Core/V2_WithEncoders/Src/ultrasonic.c
     Core/V2_WithEncoders/Src/stm32f4xx_hal_msp.c
     Core/V2_WithEncoders/Src/stm32f4xx_it.c
+    Core/V2_WithEncoders/Src/state.c
+    Core/V2_WithEncoders/Src/command_receiver.c
 )
 
 target_include_directories(V2_WithEncoders PRIVATE
