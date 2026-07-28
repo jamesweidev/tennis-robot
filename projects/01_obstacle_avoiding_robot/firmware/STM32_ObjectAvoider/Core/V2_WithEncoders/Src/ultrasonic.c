@@ -3,6 +3,8 @@
 
 TIM_HandleTypeDef htim3 = {0};
 
+static uint32_t get_raw_distance(void);
+
 void Ultrasonic_GPIO_Init(void)
 {
 	__HAL_RCC_GPIOA_CLK_ENABLE();
@@ -23,6 +25,29 @@ void Ultrasonic_GPIO_Init(void)
 }
 
 uint32_t get_distance(void)
+{
+	uint32_t samples[5] = {0};
+	for (uint8_t count = 0; count < 5; count++)
+	{
+		uint32_t raw_distance = get_raw_distance();
+
+		uint8_t i = 0;
+		while (raw_distance < samples[i]) i++;
+
+		uint32_t prev_value = raw_distance;
+		for (uint8_t j = i; j < 5; j++)
+		{
+			uint32_t temp = samples[j];
+			samples[j] = prev_value;
+			prev_value = temp;
+		}
+		HAL_Delay(20);
+	}
+
+	uint32_t distance = samples[2];
+}
+
+static uint32_t get_raw_distance(void)
 {
 	// Sends initial pulse
 	HAL_GPIO_WritePin(US_GPIO_PORT, US_TRIG_PIN, GPIO_PIN_SET);

@@ -42,7 +42,7 @@ void Offset_Position(float forward_m, float degs)
 	float m_to_travel = distance_180_deg * degs / 180;
 
 	// in ticks
-	uint32_t rotate_ticks = abs((int) (m_to_travel * ticks_per_m));
+	uint32_t rotate_ticks = abs((uint32_t) (m_to_travel * ticks_per_m));
 
 	// Change rotate direction based on deg sign
 	ActionType rotate_dir = ACTION_RIGHT;
