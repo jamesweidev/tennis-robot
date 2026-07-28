@@ -26,9 +26,7 @@ int main(void)
 
 	UART3_Init();
 
-	Draw_Circle(0.5f);
-
-	// Offset_Position(1, 0);
+	Offset_Position(1, 0);
 
 	while (1)
 	{

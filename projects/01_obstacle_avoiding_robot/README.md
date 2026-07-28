@@ -7,7 +7,7 @@ Basic STM32 based robot that drives around and avoids hitting objects. Used for 
 | Version | Feature | Status |
 |---|---|---|
 | v1 | Obstacle Avoidance w/ HC-SR04 | Done |
-| v2 | Relative Positioning w/ Encoders | In progress |
+| v2 | Relative Positioning w/ Encoders | Done |
 | v3 | V2 w/ Collision Avoidance | Not Started |
 ---
 
