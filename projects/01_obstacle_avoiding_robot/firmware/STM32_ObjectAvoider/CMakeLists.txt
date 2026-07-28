@@ -95,33 +95,33 @@ target_link_options(Testing PRIVATE
 )
 
 
-#################### V2_WithEncoders ####################
-add_executable(V2_WithEncoders
-    Core/V2_WithEncoders/Src/main.c
-    Core/V2_WithEncoders/Src/debug_uart.c
-    Core/V2_WithEncoders/Src/encoder.c
-    Core/V2_WithEncoders/Src/motor.c
-    Core/V2_WithEncoders/Src/pid.c
-    Core/V2_WithEncoders/Src/ultrasonic.c
-    Core/V2_WithEncoders/Src/stm32f4xx_hal_msp.c
-    Core/V2_WithEncoders/Src/stm32f4xx_it.c
-    Core/V2_WithEncoders/Src/state.c
-    Core/V2_WithEncoders/Src/command_receiver.c
+#################### V3_CollisionAvoidance ####################
+add_executable(V3_CollisionAvoidance
+    Core/V3_CollisionAvoidance/Src/main.c
+    Core/V3_CollisionAvoidance/Src/debug_uart.c
+    Core/V3_CollisionAvoidance/Src/encoder.c
+    Core/V3_CollisionAvoidance/Src/motor.c
+    Core/V3_CollisionAvoidance/Src/pid.c
+    Core/V3_CollisionAvoidance/Src/ultrasonic.c
+    Core/V3_CollisionAvoidance/Src/stm32f4xx_hal_msp.c
+    Core/V3_CollisionAvoidance/Src/stm32f4xx_it.c
+    Core/V3_CollisionAvoidance/Src/state.c
+    Core/V3_CollisionAvoidance/Src/command_receiver.c
 )
 
-target_include_directories(V2_WithEncoders PRIVATE
-    Core/V2_WithEncoders/Inc
+target_include_directories(V3_CollisionAvoidance PRIVATE
+    Core/V3_CollisionAvoidance/Inc
 )
 
-target_link_libraries(V2_WithEncoders PRIVATE
+target_link_libraries(V3_CollisionAvoidance PRIVATE
     STM32_Drivers
 )
 
-target_compile_options(V2_WithEncoders PRIVATE
+target_compile_options(V3_CollisionAvoidance PRIVATE
     ${FPU_COMPILE_FLAGS}
 )
 
-target_link_options(V2_WithEncoders PRIVATE
+target_link_options(V3_CollisionAvoidance PRIVATE
     ${FPU_COMPILE_FLAGS}
     -u _printf_float
 )

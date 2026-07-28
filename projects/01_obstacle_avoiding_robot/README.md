@@ -8,7 +8,7 @@ Basic STM32 based robot that drives around and avoids hitting objects. Used for 
 |---|---|---|
 | v1 | Obstacle Avoidance w/ HC-SR04 | Done |
 | v2 | Relative Positioning w/ Encoders | Done |
-| v3 | V2 w/ Collision Avoidance | Not Started |
+| v3 | Collision Avoidance | Not Started |
 ---
 
 ## Demos
@@ -43,7 +43,7 @@ All demos are (not yet) in 'media/'
 | L298N GND | STM32 GND | Ground | Common ground |
 
 ## Firmware
-Firmware is located at `firmware/STM32_ObjectAvoider/Core/V1_BasicAvoidance`
+Firmware is located at [firmware/STM32_ObjectAvoider/Core/V1_BasicAvoidance](firmware/STM32_ObjectAvoider/Core/V1_BasicAvoidance)
 
 - GPIO for motor direction
 - Timer/SysTick for delays
@@ -88,7 +88,7 @@ Firmware is located at `firmware/STM32_ObjectAvoider/Core/V1_BasicAvoidance`
 
 
 ## Firmware Changes From V1
-Firmware is located at `firmware/STM32_ObjectAvoider/Core/V2_WithEncoders`
+This version is overwritten by V3, but it can be accessed at [firmware/STM32_ObjectAvoider/Core/V2_WithEncoders](firmware/STM32_ObjectAvoider/Core/V2_WithEncoders) in tag p1v2.
 
 - Input capture for counting encoder ticks
 - 100ms timer that updates PID values and subsequently the motor speeds
@@ -96,3 +96,19 @@ Firmware is located at `firmware/STM32_ObjectAvoider/Core/V2_WithEncoders`
 - Offset_Position function that turns by x degrees and moves forward by y meters
 
 ---
+
+## V3: Collision Avoidance
+
+1. Everything that V2 does
+2. Add back the obstacle avoidance from V1, which can override the position commands in order to avoid collisions
+
+## Harware & Wiring
+
+Same as V2
+
+## Firmware Changes From V2
+
+Firmware is located at [firmware/STM32_ObjectAvoider/Core/V3_CollisionAvoidance](firmware/STM32_ObjectAvoider/Core/V3_CollisionAvoidance).
+
+- Refactor robot's blocking control logic to use non blocking state machine.
+- Add an OBSTACLE_DETECTED state, which stops the robot in whatever it's doing, and reverses until the obstacle is far enough away.

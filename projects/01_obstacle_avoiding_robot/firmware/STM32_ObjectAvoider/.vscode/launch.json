@@ -18,11 +18,11 @@
         },
         {
             "type": "cortex-debug",
-            "name": "Cortex-Debug: V2_WithEncoders",
+            "name": "Cortex-Debug: V3_CollisionAvoidance",
             "request": "launch",
             "servertype": "stlink",
             "cwd": "${workspaceFolder}",
-            "executable": "${workspaceFolder}/build/Debug/V2_WithEncoders.elf",
+            "executable": "${workspaceFolder}/build/Debug/V3_CollisionAvoidance.elf",
             "device": "STM32F446RE",
             "interface": "swd",
             "runToEntryPoint": "main",
