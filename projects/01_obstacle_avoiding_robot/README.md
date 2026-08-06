@@ -8,7 +8,7 @@ Basic STM32 based robot that drives around and avoids hitting objects. Used for 
 |---|---|---|
 | v1 | Obstacle Avoidance w/ HC-SR04 | Done |
 | v2 | Relative Positioning w/ Encoders | Done |
-| v3 | Collision Avoidance | Not Started |
+| v3 | Collision Avoidance | Done |
 ---
 
 ## Demos
@@ -102,9 +102,27 @@ This version is overwritten by V3, but it can be accessed at [firmware/STM32_Obj
 1. Everything that V2 does
 2. Add back the obstacle avoidance from V1, which can override the position commands in order to avoid collisions
 
-## Harware & Wiring
+## Harware 
 
 Same as V2
+
+## Wiring
+
+| Component | MCU Pin | STM32 Function | Purpose |
+|---|---|---|---|
+| HC-SR04 TRIG | PA8 | GPIO Output | Ultrasonic trigger |
+| HC-SR04 ECHO | PA9 | GPIO Input | Ultrasonic echo input |
+| MPQ6612A AIN1 | PA0 | TIM2_CH1 PWM | Right motor PWM |
+| MPQ6612A AIN2 | PA1 | TIM2_CH2 PWM | Right motor PWM |
+| MPQ6612A BIN1 | PB10 | TIM2_CH3 PWM | Left motor PWM |
+| MPQ6612A BIN2 | PB2 | TIM2_CH4 PWM | Left motor PWM |
+| MPQ6612A GND | STM32 GND | Ground | Common ground |
+| Right ENCA | PB6 | TIM4_CH1 IC | Right motor encoder A |
+| Right ENCB | PB7 | GPIO Input | Right motor encoder B |
+| Left ENCA | PB8 | TIM4_CH3 IC | Left motor encoder A |
+| Left ENCB | PB9 | GPIO Input | Left motor encoder B |
+| RPi Rx | PC6 | UART6 Rx | MCU to RPi UART Rx |
+| RPi Tx | PC7 | UART6 Tx | MCU to RPi UART Tx |
 
 ## Firmware Changes From V2
 
