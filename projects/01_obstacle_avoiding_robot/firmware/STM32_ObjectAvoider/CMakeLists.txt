@@ -30,7 +30,7 @@ set(FPU_COMPILE_FLAGS
     -mfloat-abi=hard
 )
 
-#################### ObjectAvoidingRobot ####################
+#################### V1_BasicAvoidance ####################
 add_executable(V1_BasicAvoidance
     Core/V1_BasicAvoidance/Src/main.c
     Core/V1_BasicAvoidance/Src/stm32f4xx_hal_msp.c
@@ -105,7 +105,6 @@ add_executable(V3_CollisionAvoidance
     Core/V3_CollisionAvoidance/Src/stm32f4xx_hal_msp.c
     Core/V3_CollisionAvoidance/Src/stm32f4xx_it.c
     Core/V3_CollisionAvoidance/Src/state.c
-    Core/V3_CollisionAvoidance/Src/command_receiver.c
 )
 
 target_include_directories(V3_CollisionAvoidance PRIVATE
@@ -125,30 +124,6 @@ target_link_options(V3_CollisionAvoidance PRIVATE
     -u _printf_float
 )
 
-
-#################### IMUTesting ####################
-# add_executable(IMUTesting
-#     Core/IMUTesting/Src/main.c
-#     Core/IMUTesting/Src/stm32f4xx_hal_msp.c
-#     Core/IMUTesting/Src/stm32f4xx_it.c
-# )
-
-# target_include_directories(IMUTesting PRIVATE
-#     Core/IMUTesting/Inc
-# )
-
-# target_link_libraries(IMUTesting PRIVATE
-#     STM32_Drivers
-# )
-
-# target_compile_options(IMUTesting PRIVATE
-#     ${FPU_COMPILE_FLAGS}
-# )
-
-# target_link_options(IMUTesting PRIVATE
-#     ${FPU_COMPILE_FLAGS}
-#     -u _printf_float
-# )
 
 # Remove wrong libob.a library dependency when using cpp files
 list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)
