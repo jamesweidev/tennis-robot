@@ -112,11 +112,6 @@ float Get_PID_Correction(Encoder* enc);
 
 uint32_t Get_Turn_Ticks(float degs);
 
-// Command Receive
-void Receive_Command(void);
-void Command_UART6_Init(void);
-void Command_Receive_Callback(void);
-
 // State
 void Update_State(void);
 
@@ -133,7 +128,7 @@ void TIM2_PWM_Init(void);
 void SystemClock_Config(void);
 
 // debugging
-void UART3_Init(void);
+void Debug_UART3_Init(void);
 void Error_Handler(void);
 
 #endif

@@ -8,7 +8,7 @@ float Get_PID_Correction(Encoder* enc)
 {
     // PID
     float pK = 0.0015f;
-    float iK = 0.0035f;
+    float iK = 0.0032f;
     float dK = 0.00f;
 
     float err = enc->target_rpm - enc->current_rpm;
@@ -22,9 +22,9 @@ float Get_PID_Correction(Encoder* enc)
         enc->pid.i_value = (enc->pid.i_value + err * S_ELAPSED);
     }
 
-    // Cap the integral to 100
-    // if (enc->pid.i_value > 100) enc->pid.i_value = 100;
-    // if (enc->pid.i_value < -100) enc->pid.i_value = -100;
+    // Cap the integral to 200. prevent massive sudden bursts
+    if (enc->pid.i_value > 200) enc->pid.i_value = 200;
+    if (enc->pid.i_value < -200) enc->pid.i_value = -200;
 
 
     enc->pid.prev_err = err;

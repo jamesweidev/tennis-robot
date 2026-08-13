@@ -19,20 +19,7 @@ void USART3_IRQHandler(void)
   HAL_UART_IRQHandler(&huart3);
 }
 
-void USART6_IRQHandler(void)
-{
-  HAL_UART_IRQHandler(&huart6);
-}
-
 void TIM4_IRQHandler(void)
 {
   HAL_TIM_IRQHandler(&htim4);
-}
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-    if (huart->Instance == USART6)
-    {
-      Command_Receive_Callback();
-    }
 }

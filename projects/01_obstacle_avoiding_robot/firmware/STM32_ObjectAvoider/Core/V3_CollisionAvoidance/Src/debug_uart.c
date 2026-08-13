@@ -3,7 +3,7 @@
 
 UART_HandleTypeDef huart3 = {0};
 
-void UART3_Init(void)
+void Debug_UART3_Init(void)
 {
 	huart3.Instance = USART3;
 	huart3.Init.BaudRate = 115200;

@@ -1,6 +1,10 @@
 #include "main.h"
+#include "stm32f446xx.h"
+#include "stm32f4xx_hal_gpio.h"
+#include <stdio.h>
 
 extern Encoder right_encoder;
+extern Encoder left_encoder;
 
 RobotState current_state = STATE_IDLE;
 uint32_t target_ticks = 0;
@@ -10,13 +14,21 @@ ActionType rotate_dir;
 volatile float forward_m = 1;
 volatile float degs = 180;
 
+
 void Update_State(void)
 {
-	// if (Get_Distance() < 500 && current_state != OBSTACLE_DETECTED)
-	// {
-	// 	Stop_Robot();
-	// 	current_state = OBSTACLE_DETECTED;
-	// }
+	float distance = Get_Distance();
+
+	if (distance == 0.0f)
+	{
+		distance = 2.0f;
+	}
+
+	if (distance < 0.3 && current_state != OBSTACLE_DETECTED)
+	{
+		Stop_Robot();
+		current_state = OBSTACLE_DETECTED;
+	}
 
 	switch (current_state)
 	{
@@ -50,7 +62,9 @@ void Update_State(void)
             }
 
             // Check if the desired turn is completed
-			if (abs(right_encoder.ticks - start_ticks) >= target_ticks)
+			// Aim for the average of the two motor ticks to go beyond target_ticks
+			uint32_t avg_ticks = (abs(right_encoder.ticks) + abs(left_encoder.ticks)) / 2;
+			if (abs(avg_ticks - start_ticks) >= target_ticks)
 			{
 				Stop_Robot();
 				start_ticks = right_encoder.ticks;
@@ -67,21 +81,25 @@ void Update_State(void)
                 Smooth_Drive(ACTION_FORWARD);
             }
 
-			if (abs(right_encoder.ticks - start_ticks) >= target_ticks)
+			// Drive completed
+			if (abs(((right_encoder.ticks + left_encoder.ticks) / 2) - start_ticks) >= target_ticks)
 			{
-				printf("stopped. target ticks: %lu encoder ticks: %ld, start_ticks: %lu\n",
-				target_ticks, right_encoder.ticks, start_ticks);
 				Stop_Robot();
 				current_state = STATE_IDLE;
 				target_ticks = 0;
+
+				// Reset the command
+				forward_m = 0;
+				degs = 0;
 			}
 
 			break;
 
 		case OBSTACLE_DETECTED:
 			Smooth_Drive(ACTION_REVERSE);
-			if (Get_Distance() > 800)
+			if (Get_Distance() > 0.5)
 			{
+				Stop_Robot();
 				current_state = STATE_IDLE;
 			}
 			break;

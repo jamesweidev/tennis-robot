@@ -110,8 +110,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		Update_Encoder(&right_encoder);
 		Update_Encoder(&left_encoder);
 
-		// For building rpm plot
-		printf("R RPM %.2f ctarget: %ld \r\n", 
+		// Avoid setting PWM if target rpm is 0
+		// Stop_Robot() already set all channels to 0
+		if (right_encoder.final_target_rpm == 0)
+		{
+			return;
+		}
+
+		printf("\n\n\n\n\nR RPM %.2f ctarget: %ld \r\n", 
 			right_encoder.current_rpm,
 			right_encoder.target_rpm
 		);
@@ -119,13 +125,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			left_encoder.current_rpm,
 			left_encoder.target_rpm
 		);
-
-		// Avoid setting PWM if target rpm is 0
-		// Stop_Robot() already set all channels to 0
-		if (right_encoder.final_target_rpm == 0)
-		{
-			return;
-		}
 
 		__HAL_TIM_SET_COMPARE(&htim2, right_encoder.active_pwm_channel, Get_Compare(&right_encoder));
 		__HAL_TIM_SET_COMPARE(&htim2, left_encoder.active_pwm_channel, Get_Compare(&left_encoder));
@@ -163,7 +162,7 @@ static void Set_Target_RPM(Encoder* enc)
 	int32_t curr_target = enc->target_rpm;
 	int32_t final = enc->final_target_rpm;
 
-	float ramp_percentile = 0.1f;
+	float ramp_percentile = 0.05f;
 
 	uint32_t diff = abs(enc->starting_rpm - final);
 	// Rather than suddenly setting the speed, it ramps up over (at most) 1 second

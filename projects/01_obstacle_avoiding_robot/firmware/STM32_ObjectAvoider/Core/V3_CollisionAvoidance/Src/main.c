@@ -12,28 +12,21 @@ extern Encoder left_encoder;
 
 extern UART_HandleTypeDef huart3;
 
-char msg[128];
-
 int main(void)
 {
 	HAL_Init();
 	SystemClock_Config();
 
-	TIM2_PWM_Init();
-	TIM4_IC_init();
 	TIM3_Micros_Init();
 	Ultrasonic_GPIO_Init();
+	TIM2_PWM_Init();
+	TIM4_IC_init();
 
-	Command_UART6_Init();
-
-	UART3_Init();
-
+	Debug_UART3_Init();
 
 	while (1)
 	{
 		Update_State();
-
-		// Receive_Command();
 	}
 	return 0;
 }
@@ -78,7 +71,7 @@ void SystemClock_Config(void)
 
 void Error_Handler(void)
 {
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
 	while (1)
 	{
 	}

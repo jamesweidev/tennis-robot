@@ -32,6 +32,9 @@ uint32_t Get_Turn_Ticks(float degs)
 	// in ticks
 	uint32_t rotate_ticks = abs((uint32_t) (m_to_travel * TICKS_PER_METER));
 
+	// correction
+	rotate_ticks *= 1.15;
+
 	return rotate_ticks;
 }
 
