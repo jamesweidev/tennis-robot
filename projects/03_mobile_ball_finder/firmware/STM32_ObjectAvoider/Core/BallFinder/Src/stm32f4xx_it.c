@@ -4,9 +4,9 @@
 #include "stm32f4xx_hal_uart.h"
 
 
-extern UART_HandleTypeDef huart3;
+extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart6;
-extern TIM_HandleTypeDef htim4;
+extern TIM_HandleTypeDef htim7;
 
 
 void SysTick_Handler(void)
@@ -14,9 +14,9 @@ void SysTick_Handler(void)
   HAL_IncTick();
 }
 
-void USART3_IRQHandler(void)
+void USART2_IRQHandler(void)
 {
-  HAL_UART_IRQHandler(&huart3);
+  HAL_UART_IRQHandler(&huart2);
 }
 
 void USART6_IRQHandler(void)
@@ -24,9 +24,9 @@ void USART6_IRQHandler(void)
   HAL_UART_IRQHandler(&huart6);
 }
 
-void TIM4_IRQHandler(void)
+void TIM7_IRQHandler(void)
 {
-  HAL_TIM_IRQHandler(&htim4);
+  HAL_TIM_IRQHandler(&htim7);
 }
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)

@@ -3,6 +3,7 @@
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_gpio.h"
 #include "stm32f4xx_hal_rcc.h"
+#include "stm32f4xx_hal_tim.h"
 #include "stm32f4xx_hal_uart.h"
 #include <stdio.h>
 
@@ -10,34 +11,29 @@
 extern Encoder right_encoder;
 extern Encoder left_encoder;
 
-extern UART_HandleTypeDef huart3;
-
 int main(void)
 {
 	HAL_Init();
 	SystemClock_Config();
 
-	TIM3_Micros_Init();
+	TIM6_Micros_Init();
 	Ultrasonic_GPIO_Init();
 	TIM2_PWM_Init();
-	TIM4_IC_init();
+	Encoder_TIM3_TIM4_Init();
+    PID_TIM7_Init();
 
 	Command_UART6_Init();
 
-	Debug_UART3_Init();
+	Debug_UART2_Init();
 
     Receive_Command();
 
 	while (1)
 	{
-		// Update_State();
-
-        Update_LED();
+		Update_State();
 	}
 	return 0;
 }
-
-
 
 void SystemClock_Config(void)
 {

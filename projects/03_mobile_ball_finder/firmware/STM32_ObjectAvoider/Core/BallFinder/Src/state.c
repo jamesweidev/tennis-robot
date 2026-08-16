@@ -8,11 +8,13 @@ extern Encoder left_encoder;
 
 RobotState current_state = STATE_IDLE;
 uint32_t target_ticks = 0;
-uint32_t start_ticks = 0;
+uint16_t start_ticks = 0;
 ActionType rotate_dir;
 
-volatile float forward_m = 0;
-volatile float degs = 0;
+volatile float forward_m = 1;
+volatile float degs = 180;
+
+static uint16_t Get_Ticks_Traveled(Encoder* enc, uint16_t start_ticks);
 
 // uart testing
 void Update_LED(void)
@@ -26,18 +28,18 @@ void Update_LED(void)
 
 void Update_State(void)
 {
-	float distance = Get_Distance();
+	// float distance = Get_Distance();
 
-	if (distance == 0.0f)
-	{
-		distance = 2.0f;
-	}
+	// if (distance == 0.0f)
+	// {
+	// 	distance = 2.0f;
+	// }
 
-	if (distance < 0.3 && current_state != OBSTACLE_DETECTED)
-	{
-		Stop_Robot();
-		current_state = OBSTACLE_DETECTED;
-	}
+	// if (distance < 0.3 && current_state != OBSTACLE_DETECTED)
+	// {
+	// 	Stop_Robot();
+	// 	current_state = OBSTACLE_DETECTED;
+	// }
 
 	switch (current_state)
 	{
@@ -57,10 +59,10 @@ void Update_State(void)
 				rotate_dir = ACTION_LEFT;
 			}
 
-			start_ticks = right_encoder.ticks;
+			start_ticks = Get_Ticks(&right_encoder);
 
             current_state = TURNING_TO_BALL;
-			
+
 			break;
 
 		case TURNING_TO_BALL:
@@ -71,14 +73,13 @@ void Update_State(void)
             }
 
             // Check if the desired turn is completed
-			// Aim for the average of the two motor ticks to go beyond target_ticks
-			uint32_t avg_ticks = (abs(right_encoder.ticks) + abs(left_encoder.ticks)) / 2;
-			if (abs(avg_ticks - start_ticks) >= target_ticks)
+			if (Get_Ticks_Traveled(&right_encoder, start_ticks) >= target_ticks)
 			{
 				Stop_Robot();
-				start_ticks = right_encoder.ticks;
+				start_ticks = Get_Ticks(&right_encoder);
 				target_ticks = TICKS_PER_METER * forward_m;
 				current_state = DRIVING_TO_BALL;
+
 			}
 
 			break;
@@ -91,7 +92,7 @@ void Update_State(void)
             }
 
 			// Drive completed
-			if (abs(((right_encoder.ticks + left_encoder.ticks) / 2) - start_ticks) >= target_ticks)
+			if (Get_Ticks_Traveled(&right_encoder, start_ticks) >= target_ticks)
 			{
 				Stop_Robot();
 				current_state = STATE_IDLE;
@@ -113,4 +114,11 @@ void Update_State(void)
 			}
 			break;
 	}
+}
+
+static uint16_t Get_Ticks_Traveled(Encoder* enc, uint16_t start_ticks)
+{
+	int16_t delta = Get_Ticks(&right_encoder) - start_ticks;
+
+	return (uint16_t) abs(delta);
 }

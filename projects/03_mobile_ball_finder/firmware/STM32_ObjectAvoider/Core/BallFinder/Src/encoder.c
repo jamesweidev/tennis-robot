@@ -1,96 +1,79 @@
 #include "main.h"
+#include "stm32f4xx_hal.h"
+#include "stm32f4xx_hal_def.h"
 #include "stm32f4xx_hal_tim.h"
 #include <stdio.h>
 
 extern TIM_HandleTypeDef htim2;
 
+TIM_HandleTypeDef htim3 = {0};
 TIM_HandleTypeDef htim4 = {0};
+TIM_HandleTypeDef htim7 = {0};
 
-Encoder right_encoder = {.id=1};
+Encoder right_encoder = {0};
 Encoder left_encoder = {0};
 
 static void Set_Target_RPM(Encoder* enc);
 static void Update_Encoder(Encoder* enc);
 static uint32_t Get_Compare(Encoder* enc);
 
-void TIM4_IC_init(void)
+void Encoder_TIM3_TIM4_Init(void)
 {
-	TIM_IC_InitTypeDef tim4_ic_config = {0};
+	TIM_Encoder_InitTypeDef encoder_init = {0};
+	encoder_init.EncoderMode = TIM_ENCODERMODE_TI12;
+	encoder_init.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+	encoder_init.IC2Selection = TIM_ICSELECTION_DIRECTTI;
 
-	tim4_ic_config.ICFilter = 0;
-	tim4_ic_config.ICPolarity = TIM_ICPOLARITY_RISING;
-	tim4_ic_config.ICPrescaler = TIM_ICPSC_DIV1;
-	tim4_ic_config.ICSelection = TIM_ICSELECTION_DIRECTTI;
+	// Left encoder
+    htim3.Instance = TIM3;
+    htim3.Init.Period = 0xFFFF;
+	htim3.Init.Prescaler = 0;
+	left_encoder.htimx = htim3;
 
-	// 62500 period & 80 presc @ 50MHz is 100ms
-	htim4.Init.Period = 62500 - 1;
-	htim4.Init.Prescaler = 80 - 1;
-	htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim4.Instance = TIM4;
-
-	if (HAL_TIM_IC_Init(&htim4) != HAL_OK)
+    if (HAL_TIM_Encoder_Init(&htim3, &encoder_init) != HAL_OK)
 	{
 		Error_Handler();
 	}
 
-	if (HAL_TIM_IC_ConfigChannel(&htim4, &tim4_ic_config, RIGHT_ENCA_CHANNEL) != HAL_OK)
+	if (HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL)) 
+	{
+		Error_Handler();
+	}
+	
+	// Right encoder
+    htim4.Instance = TIM4;
+    htim4.Init.Period = 0xFFFF;
+	right_encoder.htimx = htim4;
+
+    if (HAL_TIM_Encoder_Init(&htim4, &encoder_init) != HAL_OK)
 	{
 		Error_Handler();
 	}
 
-	if (HAL_TIM_IC_Start_IT(&htim4, RIGHT_ENCA_CHANNEL) != HAL_OK)
-	{
-		Error_Handler();
-	}
-
-	if (HAL_TIM_IC_ConfigChannel(&htim4, &tim4_ic_config, LEFT_ENCA_CHANNEL) != HAL_OK)
-	{
-		Error_Handler();
-	}
-
-	if (HAL_TIM_IC_Start_IT(&htim4, LEFT_ENCA_CHANNEL) != HAL_OK)
-	{
-		Error_Handler();
-	}
-
-	// Base Timer
-	if (HAL_TIM_Base_Start_IT(&htim4) != HAL_OK)
+	if (HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL)) 
 	{
 		Error_Handler();
 	}
 }
 
-/**
- * @brief Increment or decrement ticks each encoder rising edge
- * 
- * @param htim 
- */
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+void PID_TIM7_Init(void)
 {
-	if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
-	{
-		// Right Encoder A was triggered
-		// if B is already active, motor is going counter clockwise
-		// right motor needs counter clockwise to move forward
-		if (HAL_GPIO_ReadPin(RIGHT_ENCB_PORT, RIGHT_ENCB_PIN))
-		{
-			right_encoder.ticks--;
-		} else
-		{
-			right_encoder.ticks++;
-		}
+	htim7.Instance = TIM7;
 
-	} else if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
+	// 100 ms period
+	htim7.Init.Period = 62500 - 1;
+	htim7.Init.Prescaler = 80 - 1;
+
+	if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
 	{
-		// Left Encoder A was triggered
-		if (HAL_GPIO_ReadPin(LEFT_ENCB_PORT, LEFT_ENCB_PIN))
-		{
-			left_encoder.ticks++;
-		} else
-		{
-			left_encoder.ticks--;
-		}
+		Error_Handler();
 	}
+
+	if (HAL_TIM_Base_Start_IT(&htim7) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
 }
 
 /**
@@ -100,39 +83,48 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
  */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	if (htim->Instance == TIM4)
+	// Ramp up the target RPM
+	Set_Target_RPM(&right_encoder);
+	Set_Target_RPM(&left_encoder);
+
+	// Update ticks and rpm
+	Update_Encoder(&right_encoder);
+	Update_Encoder(&left_encoder);
+
+	// Avoid setting PWM if target rpm is 0
+	// Stop_Robot() already set all channels to 0
+	if (right_encoder.final_target_rpm == 0)
 	{
-		// Ramp up the target RPM
-		Set_Target_RPM(&right_encoder);
-		Set_Target_RPM(&left_encoder);
-	
-		// Update ticks and rpm every 20 ms
-		Update_Encoder(&right_encoder);
-		Update_Encoder(&left_encoder);
-
-		// Avoid setting PWM if target rpm is 0
-		// Stop_Robot() already set all channels to 0
-		if (right_encoder.final_target_rpm == 0)
-		{
-			return;
-		}
-
-		printf("\n\n\n\n\nR RPM %.2f ctarget: %ld \r\n", 
-			right_encoder.current_rpm,
-			right_encoder.target_rpm
-		);
-		printf("L RPM: %.2f ctarget: %ld \r\n", 
-			left_encoder.current_rpm,
-			left_encoder.target_rpm
-		);
-
-		__HAL_TIM_SET_COMPARE(&htim2, right_encoder.active_pwm_channel, Get_Compare(&right_encoder));
-		__HAL_TIM_SET_COMPARE(&htim2, left_encoder.active_pwm_channel, Get_Compare(&left_encoder));
-
-		// Set the inactive channels to 0 so previous values wont carry over
-		__HAL_TIM_SET_COMPARE(&htim2, right_encoder.inactive_pwm_channel, 0);
-		__HAL_TIM_SET_COMPARE(&htim2, left_encoder.inactive_pwm_channel, 0);
+		return;
 	}
+
+	printf("current rpm: %.2f i value: %.2f actual_s_elapsed: %f\r\n", 
+		right_encoder.current_rpm,
+		right_encoder.pid.i_value,
+		right_encoder.s_elapsed
+	);
+
+
+	// printf("\n\n\n\n\nR RPM %.2f ctarget: %ld \r\n", 
+	// 	right_encoder.current_rpm,
+	// 	right_encoder.target_rpm
+	// );
+	// printf("L RPM: %.2f ctarget: %ld \r\n", 
+	// 	left_encoder.current_rpm,
+	// 	left_encoder.target_rpm
+	// );
+
+	__HAL_TIM_SET_COMPARE(&htim2, right_encoder.active_pwm_channel, Get_Compare(&right_encoder));
+	__HAL_TIM_SET_COMPARE(&htim2, left_encoder.active_pwm_channel, Get_Compare(&left_encoder));
+
+	// Set the inactive channels to 0 so previous values wont carry over
+	__HAL_TIM_SET_COMPARE(&htim2, right_encoder.inactive_pwm_channel, 0);
+	__HAL_TIM_SET_COMPARE(&htim2, left_encoder.inactive_pwm_channel, 0);
+}
+
+uint16_t Get_Ticks(Encoder* enc)
+{
+	return (uint16_t)__HAL_TIM_GET_COUNTER(&enc->htimx);
 }
 
 static uint32_t Get_Compare(Encoder* enc)
@@ -179,8 +171,13 @@ static void Set_Target_RPM(Encoder* enc)
 }
 
 static void Update_Encoder(Encoder* enc)
-{
-	enc->tick_rate = (enc->ticks - enc->prev_ticks) / S_ELAPSED;
-	enc->prev_ticks = enc->ticks;
-	enc->current_rpm = (enc->tick_rate * 60) / TICKS_PER_ROTATION;
+{	
+	uint32_t cur_millis = HAL_GetTick();
+	enc->s_elapsed = (int16_t) (cur_millis - enc->prev_millis) / 1000.0f;
+	enc->prev_millis = cur_millis;
+
+	uint16_t ticks = Get_Ticks(enc);
+	int16_t tick_rate = (int16_t) (ticks - enc->prev_ticks) / enc->s_elapsed;
+	enc->prev_ticks = ticks;
+	enc->current_rpm = (tick_rate * 60) / TICKS_PER_ROTATION;
 }

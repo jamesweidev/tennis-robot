@@ -31,28 +31,28 @@ set(FPU_COMPILE_FLAGS
 )
 
 #################### Testing ####################
-add_executable(Testing
-    Core/Testing/Src/main.c
-    Core/Testing/Src/stm32f4xx_hal_msp.c
-    Core/Testing/Src/stm32f4xx_it.c
-)
+# add_executable(Testing
+#     Core/Testing/Src/main.c
+#     Core/Testing/Src/stm32f4xx_hal_msp.c
+#     Core/Testing/Src/stm32f4xx_it.c
+# )
 
-target_include_directories(Testing PRIVATE
-    Core/Testing/Inc
-)
+# target_include_directories(Testing PRIVATE
+#     Core/Testing/Inc
+# )
 
-target_link_libraries(Testing PRIVATE
-    STM32_Drivers
-)
+# target_link_libraries(Testing PRIVATE
+#     STM32_Drivers
+# )
 
-target_compile_options(Testing PRIVATE
-    ${FPU_COMPILE_FLAGS}
-)
+# target_compile_options(Testing PRIVATE
+#     ${FPU_COMPILE_FLAGS}
+# )
 
-target_link_options(Testing PRIVATE
-    ${FPU_COMPILE_FLAGS}
-    -u _printf_float
-)
+# target_link_options(Testing PRIVATE
+#     ${FPU_COMPILE_FLAGS}
+#     -u _printf_float
+# )
 
 #################### BallFinder ####################
 add_executable(BallFinder

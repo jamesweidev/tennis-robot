@@ -48,22 +48,23 @@
 #define LEFT_ENCB_CHANNEL           TIM_CHANNEL_4
 
 // Drive constants
-#define PRE_GEAR_TICKS              13
-#define GEAR_RATIO                  20.409f
-#define S_ELAPSED                   0.1f
+#define PRE_GEAR_TICKS              48
+#define GEAR_RATIO                  46.85f
 
-#define WHEEL_DIAM_M                0.048f
+#define WHEEL_DIAM_M                0.08f
 #define WHEEL_CIRCUMFERENCE         (WHEEL_DIAM_M * M_PI)
 #define TICKS_PER_ROTATION          (PRE_GEAR_TICKS * GEAR_RATIO)
 #define TICKS_PER_METER             (TICKS_PER_ROTATION / WHEEL_CIRCUMFERENCE)
+
+#define WHEEL_DISTANCE_M            0.154f // Basically the diameter of the robot's rotation
 
 // Command UART6
 #define UART6_GPIO_PORT             GPIOC
 #define UART6_TX_PIN                GPIO_PIN_6
 #define UART6_RX_PIN                GPIO_PIN_7
 
-#define USART3_TX_PORT              GPIOC
-#define USART3_TX_PIN               GPIO_PIN_10
+#define USART2_TX_PORT              GPIOA
+#define USART2_TX_PIN               GPIO_PIN_2
 
 // Directions
 typedef enum
@@ -81,9 +82,7 @@ typedef struct {
 } PID_State;
 
 typedef struct {
-	volatile int32_t ticks;
-	volatile int32_t prev_ticks;
-	volatile float tick_rate;
+	volatile uint16_t prev_ticks;
 	volatile float current_rpm;
     volatile int32_t target_rpm;
     int32_t final_target_rpm; // used to for smoother motor speed setting
@@ -91,9 +90,11 @@ typedef struct {
     PID_State pid;
     uint32_t active_pwm_channel;
     uint32_t inactive_pwm_channel;
-    
-    // Debugging
-    uint8_t id;
+
+    uint32_t prev_millis;
+    float s_elapsed;
+
+    TIM_HandleTypeDef htimx;
 } Encoder;
 
 typedef enum {
@@ -107,6 +108,7 @@ typedef enum {
 void Smooth_Drive(ActionType new_action);
 void Draw_Circle(float radius);
 void Stop_Robot();
+uint16_t Get_Ticks(Encoder* enc);
 
 float Get_PID_Correction(Encoder* enc);
 
@@ -127,13 +129,14 @@ void delay_us(uint32_t micros);
 
 // Inits
 void Ultrasonic_GPIO_Init(void);
-void TIM4_IC_init(void);
-void TIM3_Micros_Init(void);
+void TIM6_Micros_Init(void);
 void TIM2_PWM_Init(void);
+void Encoder_TIM3_TIM4_Init(void);
 void SystemClock_Config(void);
+void PID_TIM7_Init(void);
 
 // debugging
-void Debug_UART3_Init(void);
+void Debug_UART2_Init(void);
 void Error_Handler(void);
 void Update_LED(void);
 

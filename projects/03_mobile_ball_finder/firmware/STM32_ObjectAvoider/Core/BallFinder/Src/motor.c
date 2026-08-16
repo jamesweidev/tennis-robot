@@ -18,13 +18,9 @@ ActionType current_action = ACTION_STOP;
  */
 uint32_t Get_Turn_Ticks(float degs)
 {
-	// From the center of one wheel to the other, 
-	// basically the diameter of the rotation
-	float wheel_to_wheel_m = 0.1343;
-
 	// Distance both wheels each have to travel to achieve a 180 deg rotation
 	// which is just half the circumference
-	float distance_180_deg = wheel_to_wheel_m * 3.14f / 2;
+	float distance_180_deg = WHEEL_DISTANCE_M * 3.14f / 2;
 
 	// The distance both wheels actually have to travel in meters
 	float m_to_travel = distance_180_deg * degs / 180;
@@ -50,9 +46,10 @@ void Draw_Circle(float radius)
 
 void Smooth_Drive(ActionType new_action)
 {
+	#define RPM 140
 	if (current_action == ACTION_STOP)
 	{
-		Drive_Motor(300, 300, new_action);
+		Drive_Motor(RPM, RPM, new_action);
 		current_action = new_action;
 		return;
 	}
@@ -63,7 +60,7 @@ void Smooth_Drive(ActionType new_action)
 		// Stop the robot for 800ms first to prevent jitters
 		Stop_Robot();
 		HAL_Delay(800);
-		Drive_Motor(300, 300, new_action);
+		Drive_Motor(RPM, RPM, new_action);
 		current_action = new_action;
 	}
 }
@@ -110,17 +107,16 @@ static void Drive_Motor(int32_t r_rpm, int32_t l_rpm, ActionType type)
 void Stop_Robot()
 {
 	// Rest all encoder values so they don't bleed into future speed settings
-	right_encoder = (Encoder) {.id=1};
-	left_encoder = (Encoder) {0};
+	right_encoder = (Encoder) {.htimx = right_encoder.htimx};
+	left_encoder = (Encoder) {.htimx = left_encoder.htimx};
 
-	// Set all motor driver IN pins to a logical 1, making motors coast
-
-	// Setting all to max PWM shorts it to ground, but also makes it jerk
-	// Since not all channels can be set exactly at once
+	// Set to 0 for 0 speed
 	__HAL_TIM_SET_COMPARE(&htim2, AIN1_CHANNEL, 0);
 	__HAL_TIM_SET_COMPARE(&htim2, AIN2_CHANNEL, 0);
 	__HAL_TIM_SET_COMPARE(&htim2, BIN1_CHANNEL, 0);
 	__HAL_TIM_SET_COMPARE(&htim2, BIN2_CHANNEL, 0);
+
+	current_action = ACTION_STOP;
 }
 
 void TIM2_PWM_Init(void)
@@ -190,31 +186,31 @@ static void motor_direction_config(ActionType type)
 	// Sets motor driver direction pins
 	if (type == ACTION_FORWARD)
 	{
-		right_encoder.active_pwm_channel = AIN2_CHANNEL;
+		right_encoder.active_pwm_channel = AIN1_CHANNEL;
 		left_encoder.active_pwm_channel = BIN1_CHANNEL;
 
-		right_encoder.inactive_pwm_channel = AIN1_CHANNEL;
+		right_encoder.inactive_pwm_channel = AIN2_CHANNEL;
 		left_encoder.inactive_pwm_channel = BIN2_CHANNEL;
 	} else if (type == ACTION_REVERSE)
 	{
-		right_encoder.active_pwm_channel = AIN1_CHANNEL;
-		left_encoder.active_pwm_channel = BIN2_CHANNEL;
-
-		right_encoder.inactive_pwm_channel = AIN2_CHANNEL;
-		left_encoder.inactive_pwm_channel = BIN1_CHANNEL;
-	} else if (type == ACTION_LEFT)
-	{
 		right_encoder.active_pwm_channel = AIN2_CHANNEL;
 		left_encoder.active_pwm_channel = BIN2_CHANNEL;
 
 		right_encoder.inactive_pwm_channel = AIN1_CHANNEL;
 		left_encoder.inactive_pwm_channel = BIN1_CHANNEL;
-	} else if (type == ACTION_RIGHT)
+	} else if (type == ACTION_LEFT)
 	{
 		right_encoder.active_pwm_channel = AIN1_CHANNEL;
-		left_encoder.active_pwm_channel = BIN1_CHANNEL;
+		left_encoder.active_pwm_channel = BIN2_CHANNEL;
 
 		right_encoder.inactive_pwm_channel = AIN2_CHANNEL;
+		left_encoder.inactive_pwm_channel = BIN1_CHANNEL;
+	} else if (type == ACTION_RIGHT)
+	{
+		right_encoder.active_pwm_channel = AIN2_CHANNEL;
+		left_encoder.active_pwm_channel = BIN1_CHANNEL;
+
+		right_encoder.inactive_pwm_channel = AIN1_CHANNEL;
 		left_encoder.inactive_pwm_channel = BIN2_CHANNEL;
 	}
 }

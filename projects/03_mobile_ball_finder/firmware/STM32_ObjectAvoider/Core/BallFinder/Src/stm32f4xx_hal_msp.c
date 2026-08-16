@@ -47,76 +47,91 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
     }
 }
 
-void HAL_TIM_IC_MspInit(TIM_HandleTypeDef *htim)
+void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef *htim)
 {
-    // Initialize encoder pins
-    __HAL_RCC_TIM4_CLK_ENABLE();
-    __HAL_RCC_GPIOB_CLK_ENABLE();
+    if (htim->Instance == TIM4)
+    {
+        // Right encoder pins
+        __HAL_RCC_TIM4_CLK_ENABLE();
+        __HAL_RCC_GPIOB_CLK_ENABLE();
 
-    GPIO_InitTypeDef gpio_init;
+        GPIO_InitTypeDef gpio_init = {0};
 
-    gpio_init.Alternate = GPIO_AF2_TIM4;
-    gpio_init.Mode = GPIO_MODE_AF_PP;
-    gpio_init.Pull = GPIO_NOPULL;
-    gpio_init.Speed = GPIO_SPEED_FREQ_MEDIUM;
+        gpio_init.Alternate = GPIO_AF2_TIM4;
+        gpio_init.Mode = GPIO_MODE_AF_PP;
+        gpio_init.Pull = GPIO_NOPULL;
 
-    // RIGHT ENA
-    gpio_init.Pin = RIGHT_ENCA_PIN;
-    HAL_GPIO_Init(RIGHT_ENCA_PORT, &gpio_init);
+        // RIGHT ENA
+        gpio_init.Pin = RIGHT_ENCA_PIN;
+        HAL_GPIO_Init(RIGHT_ENCA_PORT, &gpio_init);
 
-    // LEFT ENA
-    gpio_init.Pin = LEFT_ENCA_PIN;
-    HAL_GPIO_Init(LEFT_ENCA_PORT, &gpio_init);
+        // RIGHT ENB
+        gpio_init.Pin = RIGHT_ENCB_PIN;
+        HAL_GPIO_Init(RIGHT_ENCB_PORT, &gpio_init);
 
-    // RIGHT ENB (not used for interrupt)
-    gpio_init.Pin = RIGHT_ENCB_PIN;
-    gpio_init.Mode = GPIO_MODE_INPUT;
-    HAL_GPIO_Init(RIGHT_ENCB_PORT, &gpio_init);
+    } else if (htim->Instance == TIM3)
+    {
+        // Left encoder pins
+        __HAL_RCC_TIM3_CLK_ENABLE();
+        __HAL_RCC_GPIOB_CLK_ENABLE();
 
-    // LEFT ENB (not used for interrupt)
-    gpio_init.Pin = LEFT_ENCB_PIN;
-    gpio_init.Mode = GPIO_MODE_INPUT;
-    HAL_GPIO_Init(LEFT_ENCB_PORT, &gpio_init);
+        GPIO_InitTypeDef gpio_init = {0};
 
-    HAL_NVIC_SetPriority(TIM4_IRQn, 15, 0);
-    HAL_NVIC_EnableIRQ(TIM4_IRQn);
+        gpio_init.Alternate = GPIO_AF2_TIM3;
+        gpio_init.Mode = GPIO_MODE_AF_PP;
+        gpio_init.Pull = GPIO_NOPULL;
+
+        // ENA
+        gpio_init.Pin = LEFT_ENCA_PIN;
+        HAL_GPIO_Init(LEFT_ENCA_PORT, &gpio_init);
+
+        // ENB
+        gpio_init.Pin = LEFT_ENCB_PIN;
+        HAL_GPIO_Init(LEFT_ENCB_PORT, &gpio_init);
+    }
 }
 
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
 {
-    if (htim->Instance == TIM3)
+    if (htim->Instance == TIM6)
     {
-        __HAL_RCC_TIM3_CLK_ENABLE();
+        __HAL_RCC_TIM6_CLK_ENABLE();
+    } else if (htim->Instance == TIM7)
+    {
+        __HAL_RCC_TIM7_CLK_ENABLE();
+
+        HAL_NVIC_SetPriority(TIM7_IRQn, 15, 0);
+        HAL_NVIC_EnableIRQ(TIM7_IRQn);
     }
 }
 
 void HAL_UART_MspInit(UART_HandleTypeDef *huart)
 {
-    if (huart->Instance == USART3)
+    if (huart->Instance == USART2)
     {
-        // Enable USART3 and GPIOB clock
-        __HAL_RCC_USART3_CLK_ENABLE();
-        __HAL_RCC_GPIOC_CLK_ENABLE();
+        // Enable USART2 and GPIOB clock
+        __HAL_RCC_USART2_CLK_ENABLE();
+        __HAL_RCC_GPIOA_CLK_ENABLE();
     
         // Enable TX and RX GPIOs and set the appropriate alternate function
         GPIO_InitTypeDef gpio_config = {0};
-        gpio_config.Alternate = GPIO_AF7_USART3;
+        gpio_config.Alternate = GPIO_AF7_USART2;
         gpio_config.Mode = GPIO_MODE_AF_PP;
         gpio_config.Pull = GPIO_NOPULL;
         gpio_config.Speed = GPIO_SPEED_FREQ_MEDIUM;
     
-        gpio_config.Pin = USART3_TX_PIN;
-        HAL_GPIO_Init(USART3_TX_PORT, &gpio_config);
+        gpio_config.Pin = USART2_TX_PIN;
+        HAL_GPIO_Init(USART2_TX_PORT, &gpio_config);
     
         // Enable UART interrupts
-        HAL_NVIC_SetPriority(USART3_IRQn, 15, 0);
-        HAL_NVIC_EnableIRQ(USART3_IRQn);
+        HAL_NVIC_SetPriority(USART2_IRQn, 15, 0);
+        HAL_NVIC_EnableIRQ(USART2_IRQn);
     
         // Debugging Onboard LED
         gpio_config.Mode = GPIO_MODE_OUTPUT_PP;
         gpio_config.Pin = GPIO_PIN_5;
         HAL_GPIO_Init(GPIOA, &gpio_config);
-    } else if (huart->Instance == USART6)
+    } else if (huart->Instance == USART2)
     {
         __HAL_RCC_USART6_CLK_ENABLE();
         __HAL_RCC_GPIOC_CLK_ENABLE();

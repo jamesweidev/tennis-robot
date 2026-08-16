@@ -1,7 +1,7 @@
 #include "main.h"
 
 
-TIM_HandleTypeDef htim3 = {0};
+TIM_HandleTypeDef htim6 = {0};
 
 static uint32_t Get_Raw_Distance(void);
 
@@ -93,18 +93,18 @@ static uint32_t Get_Raw_Distance(void)
 	return distance;
 }
 
-void TIM3_Micros_Init(void)
+void TIM6_Micros_Init(void)
 {
-	htim3.Instance = TIM3;
-	htim3.Init.Period = 0xFFFFFFFF;
-	htim3.Init.Prescaler = 50 - 1; // 1 MHz clock, 1 µs per tick
+	htim6.Instance = TIM6;
+	htim6.Init.Period = 0xFFFFFFFF;
+	htim6.Init.Prescaler = 50 - 1; // 1 MHz clock, 1 µs per tick
 
-	if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+	if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
 	{
 		Error_Handler();
 	}
 
-	if (HAL_TIM_Base_Start(&htim3) != HAL_OK)
+	if (HAL_TIM_Base_Start(&htim6) != HAL_OK)
 	{
 		Error_Handler();
 	}
@@ -112,7 +112,7 @@ void TIM3_Micros_Init(void)
 
 uint32_t micros(void)
 {
-	return __HAL_TIM_GET_COUNTER(&htim3);
+	return __HAL_TIM_GET_COUNTER(&htim6);
 }
 
 void delay_us(uint32_t us)

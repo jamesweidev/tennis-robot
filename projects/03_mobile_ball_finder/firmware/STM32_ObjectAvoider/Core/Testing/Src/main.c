@@ -26,6 +26,19 @@ int main(void)
 	return 0;
 }
 
+void Encoder_TIM1_Init(void)
+{
+    TIM_HandleTypeDef htim1 = {0};
+
+    htim1.Instance = TIM1;
+    htim1.Init.Period = 0xFFFF;
+    TIM_Encoder_InitTypeDef encoder_init = {0};
+    encoder_init.EncoderMode = TIM_ENCODERMODE_TI12;
+    encoder_init.IC1Selection
+
+    HAL_TIM_Encoder_Init(&htim1, &encoder_init);   
+}
+
 void GPIO_Init(void)
 {
 	GPIO_InitTypeDef gpio_init = {0};

@@ -26,9 +26,9 @@ This project combines project 1 and 2, and the goal is to have the robot find th
 | MPQ6612A BIN1 | PB10 | TIM2_CH3 PWM | Left motor PWM |
 | MPQ6612A BIN2 | PB2 | TIM2_CH4 PWM | Left motor PWM |
 | MPQ6612A GND | STM32 GND | Ground | Common ground |
+| Left ENCA | PB4 | TIM3_CH1 IC | Left motor encoder A |
+| Left ENCB | PB5 | TIM3_CH2 IC | Left motor encoder B |
 | Right ENCA | PB6 | TIM4_CH1 IC | Right motor encoder A |
-| Right ENCB | PB7 | GPIO Input | Right motor encoder B |
-| Left ENCA | PB8 | TIM4_CH3 IC | Left motor encoder A |
-| Left ENCB | PB9 | GPIO Input | Left motor encoder B |
+| Right ENCB | PB7 | TIM4_CH2 IC | Right motor encoder B |
 | RPi Rx | PC6 | UART6 Rx | MCU to RPi UART Rx |
 | RPi Tx | PC7 | UART6 Tx | MCU to RPi UART Tx |
