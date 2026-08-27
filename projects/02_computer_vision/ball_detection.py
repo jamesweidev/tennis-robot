@@ -2,7 +2,7 @@ import numpy as np
 import math
 import cv2
 
-from uart_send import uart_send
+from uart_send import uart_send, open_uart
 
 FOCAL_LENGTH_PX = 1120 / 2
 BALL_DIAMETER_M = 0.067
@@ -30,7 +30,10 @@ cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
 frame_to_cap = None
 frame_to_cap_with_contours = None
 
+ser = open_uart()
+
 def get_contours(frame):
+    # process the image then return all external contours
     blurred = cv2.GaussianBlur(frame, (5,5), 0)
 
     lower_bound = np.array([low_H, low_S, 80])
@@ -45,6 +48,26 @@ def get_contours(frame):
 
     contours, _ = cv2.findContours(final_filter, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     return contours
+
+def filtered_contours(contours) -> list:
+    # filter contours based on how much they resemble a perfect circle
+    scores = []
+    for i, contour in enumerate(contours):
+        area = cv2.contourArea(contour)
+
+        (x, y), radius = cv2.minEnclosingCircle(contour)
+
+        # Area if the contour is a perfect circle
+        perfect_area = math.pi * (radius ** 2)
+
+        # score contours based on how much they resemble a perfect circle
+        score = area / perfect_area
+        scores.append((i, score, radius, int(x), int(y)))
+
+    # Only allow contours that at least 70% resembles a circle
+    scores = [score for score in scores if score[1] > 0.75]
+
+    return scores
 
 while True:
     key = cv2.waitKey(1)
@@ -63,50 +86,40 @@ while True:
 
     contours = get_contours(frame)
 
-    scores = []
-    # filter the contours for the best one
-    for i, contour in enumerate(contours):
-        area = cv2.contourArea(contour)
+    scores = filtered_contours(contours)
 
-        (x, y), radius = cv2.minEnclosingCircle(contour)
-
-        # Area if the contour is a perfect circle
-        perfect_area = math.pi * (radius ** 2)
-
-        # score contours based on how much they resemble a perfect circle
-        score = area / perfect_area
-        scores.append((i, score, radius, int(x), int(y)))
-    
-
-    # Only allow contours that at least 70% resembles a circle
-    scores = [score for score in scores if score[1] > 0.75]
-
+    # show the image with all the unfiltered contours drawn
+    # for debugging and tuning the filtering
     frame_cpy = frame.copy()
     frame_cpy = cv2.drawContours(frame_cpy, contours, -1, (0,0,255), 3)
     frame_to_cap_with_contours = frame_cpy
     cv2.imshow(window_name_unfiltered, frame_cpy)
 
+    # if at least one ball exists on the screen
     if len(scores) > 0:
+        # if multiple balls, select the biggest one
         best_contour_i, best_score, best_radius, best_x, best_y = max(scores, key= lambda x : x[2])
 
         ball_diam_px = best_radius * 2
 
+        # distance to the ball
         distance = BALL_DIAMETER_M * FOCAL_LENGTH_PX / ball_diam_px
 
         # Get the ball's angle offset relative to the center of the camera
         x_offset_px = best_x - cap.get(cv2.CAP_PROP_FRAME_WIDTH) / 2
         rad_from_center = math.atan(x_offset_px / FOCAL_LENGTH_PX)
         deg_from_center = math.degrees(rad_from_center)
-
-        uart_send(f'Distance: {distance:.2f} m deg: {deg_from_center:.2f}\r\n'.encode("utf-8"))
+        
+        uart_send(ser, f'f: {distance:.2f} d: {deg_from_center:.2f} \n'.encode("utf-8"))
         print(f'Distance: {distance} m deg: {deg_from_center}')
 
         cv2.circle(frame, (best_x, best_y), int(best_radius), (0, 0, 255), 2, cv2.LINE_AA)
+        # input("enter to get next ball")
 
     cv2.imshow(window_name_result, frame)
+    
 
-
-
+ser.close()
 cap.release()
 cv2.destroyAllWindows()
 

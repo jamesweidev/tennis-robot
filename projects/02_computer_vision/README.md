@@ -6,3 +6,7 @@ Computer vision script for detecting tennis balls and their relative location fr
 
  - Can consistently detect a tennis ball under various lightings and backgrounds
  - Outputs the distance and angle of the ball relative to the camera
+
+ # Hardware
+ - Raspberry Pi 4 with a couple of heat sinks
+ - USB2.0 1080P camera - innomaker U20CAM
