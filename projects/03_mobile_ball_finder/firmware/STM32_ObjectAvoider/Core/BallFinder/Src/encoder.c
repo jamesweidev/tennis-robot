@@ -28,7 +28,7 @@ void Encoder_TIM3_TIM4_Init(void)
     htim3.Instance = TIM3;
     htim3.Init.Period = 0xFFFF;
 	htim3.Init.Prescaler = 0;
-	left_encoder.htimx = htim3;
+	left_encoder.htimx = &htim3;
 
     if (HAL_TIM_Encoder_Init(&htim3, &encoder_init) != HAL_OK)
 	{
@@ -43,7 +43,8 @@ void Encoder_TIM3_TIM4_Init(void)
 	// Right encoder
     htim4.Instance = TIM4;
     htim4.Init.Period = 0xFFFF;
-	right_encoder.htimx = htim4;
+	htim4.Init.Prescaler = 0;
+	right_encoder.htimx = &htim4;
 
     if (HAL_TIM_Encoder_Init(&htim4, &encoder_init) != HAL_OK)
 	{
@@ -91,28 +92,25 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	Update_Encoder(&right_encoder);
 	Update_Encoder(&left_encoder);
 
-	// Avoid setting PWM if target rpm is 0
+	// Avoid setting PWM in the case of a stopped robot
 	// Stop_Robot() already set all channels to 0
 	if (right_encoder.final_target_rpm == 0)
 	{
 		return;
 	}
 
-	printf("current rpm: %.2f i value: %.2f actual_s_elapsed: %f\r\n", 
+	printf("\n\n\n\n\nR RPM %.2f ctarget: %ld ftarget: %ld starting: %.2f\r\n", 
 		right_encoder.current_rpm,
-		right_encoder.pid.i_value,
-		right_encoder.s_elapsed
+		right_encoder.target_rpm,
+		right_encoder.final_target_rpm,
+		right_encoder.starting_rpm
 	);
-
-
-	// printf("\n\n\n\n\nR RPM %.2f ctarget: %ld \r\n", 
-	// 	right_encoder.current_rpm,
-	// 	right_encoder.target_rpm
-	// );
-	// printf("L RPM: %.2f ctarget: %ld \r\n", 
-	// 	left_encoder.current_rpm,
-	// 	left_encoder.target_rpm
-	// );
+	printf("L RPM: %.2f ctarget: %ld ftarget: %ld starting: %.2f\r\n", 
+		left_encoder.current_rpm,
+		left_encoder.target_rpm,
+		left_encoder.final_target_rpm,
+		left_encoder.starting_rpm
+	);
 
 	__HAL_TIM_SET_COMPARE(&htim2, right_encoder.active_pwm_channel, Get_Compare(&right_encoder));
 	__HAL_TIM_SET_COMPARE(&htim2, left_encoder.active_pwm_channel, Get_Compare(&left_encoder));
@@ -124,7 +122,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 uint16_t Get_Ticks(Encoder* enc)
 {
-	return (uint16_t)__HAL_TIM_GET_COUNTER(&enc->htimx);
+	return (uint16_t)__HAL_TIM_GET_COUNTER(enc->htimx);
 }
 
 static uint32_t Get_Compare(Encoder* enc)
@@ -157,15 +155,20 @@ static void Set_Target_RPM(Encoder* enc)
 	float ramp_percentile = 0.05f;
 
 	uint32_t diff = abs(enc->starting_rpm - final);
-	// Rather than suddenly setting the speed, it ramps up over (at most) 1 second
+
+	// Rather than suddenly setting the speed, it ramps up over time
 	if (abs(curr_target - final) < (diff * ramp_percentile))
 	{
+		// rpm is close enough to the target, set it directly
 		enc->target_rpm = final;
 	}else if (curr_target < final)
 	{
+		// add when current is less than final
+		// printf("rt: %ld, lt: %ld", right_encoder.target_rpm, left_encoder.target_rpm)
 		enc->target_rpm += diff * ramp_percentile;
 	} else if (curr_target > final)
 	{
+		// and subtract when current target is greater
 		enc->target_rpm -= diff * ramp_percentile;
 	}
 }

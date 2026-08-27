@@ -57,7 +57,7 @@ void Smooth_Drive(ActionType new_action)
 	if (current_action != new_action)
 	{
 		// If the new action differs from current action
-		// Stop the robot for 800ms first to prevent jitters
+		// Stop the robot for some time first to prevent jitters
 		Stop_Robot();
 		HAL_Delay(800);
 		Drive_Motor(RPM, RPM, new_action);
@@ -69,6 +69,12 @@ static void Drive_Motor(int32_t r_rpm, int32_t l_rpm, ActionType type)
 {
 	right_encoder.starting_rpm = right_encoder.current_rpm;
 	left_encoder.starting_rpm = left_encoder.current_rpm;
+
+	if (current_action == ACTION_STOP)
+	{
+		right_encoder.starting_rpm = 0;
+		left_encoder.starting_rpm = 0;
+	}
 
 	// Adjust the sign of rpm based on the specified direction
 	// Defaults to positive, changes to negative if needed
@@ -106,15 +112,15 @@ static void Drive_Motor(int32_t r_rpm, int32_t l_rpm, ActionType type)
 
 void Stop_Robot()
 {
-	// Rest all encoder values so they don't bleed into future speed settings
-	right_encoder = (Encoder) {.htimx = right_encoder.htimx};
-	left_encoder = (Encoder) {.htimx = left_encoder.htimx};
-
 	// Set to 0 for 0 speed
 	__HAL_TIM_SET_COMPARE(&htim2, AIN1_CHANNEL, 0);
 	__HAL_TIM_SET_COMPARE(&htim2, AIN2_CHANNEL, 0);
 	__HAL_TIM_SET_COMPARE(&htim2, BIN1_CHANNEL, 0);
 	__HAL_TIM_SET_COMPARE(&htim2, BIN2_CHANNEL, 0);
+
+	// Rest all encoder values so they don't bleed into future speed settings
+	right_encoder = (Encoder) {.htimx = right_encoder.htimx};
+	left_encoder = (Encoder) {.htimx = left_encoder.htimx};
 
 	current_action = ACTION_STOP;
 }

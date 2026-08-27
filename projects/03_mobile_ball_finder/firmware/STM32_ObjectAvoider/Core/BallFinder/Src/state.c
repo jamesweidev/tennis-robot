@@ -28,12 +28,12 @@ void Update_LED(void)
 
 void Update_State(void)
 {
-	// float distance = Get_Distance();
+	float distance = Get_Distance();
 
-	// if (distance == 0.0f)
-	// {
-	// 	distance = 2.0f;
-	// }
+	if (distance == 0.0f)
+	{
+		distance = 2.0f;
+	}
 
 	// if (distance < 0.3 && current_state != OBSTACLE_DETECTED)
 	// {

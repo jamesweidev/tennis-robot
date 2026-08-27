@@ -10,6 +10,7 @@
 
 extern Encoder right_encoder;
 extern Encoder left_encoder;
+extern TIM_HandleTypeDef htim3;
 
 int main(void)
 {
@@ -23,7 +24,6 @@ int main(void)
     PID_TIM7_Init();
 
 	Command_UART6_Init();
-
 	Debug_UART2_Init();
 
     Receive_Command();

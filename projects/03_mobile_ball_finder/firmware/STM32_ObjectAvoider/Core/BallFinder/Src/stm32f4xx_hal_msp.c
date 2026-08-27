@@ -109,6 +109,8 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart)
 {
     if (huart->Instance == USART2)
     {
+        // Debug UART msp init
+
         // Enable USART2 and GPIOB clock
         __HAL_RCC_USART2_CLK_ENABLE();
         __HAL_RCC_GPIOA_CLK_ENABLE();
@@ -131,8 +133,10 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart)
         gpio_config.Mode = GPIO_MODE_OUTPUT_PP;
         gpio_config.Pin = GPIO_PIN_5;
         HAL_GPIO_Init(GPIOA, &gpio_config);
-    } else if (huart->Instance == USART2)
+    } else if (huart->Instance == USART6)
     {
+        // Command receive uart msp init
+
         __HAL_RCC_USART6_CLK_ENABLE();
         __HAL_RCC_GPIOC_CLK_ENABLE();
 

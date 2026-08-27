@@ -33,19 +33,15 @@
 // Encoder IC is on TIM4
 #define RIGHT_ENCA_PORT             GPIOB
 #define RIGHT_ENCA_PIN              GPIO_PIN_6
-#define RIGHT_ENCA_CHANNEL          TIM_CHANNEL_1
 
 #define RIGHT_ENCB_PORT             GPIOB
 #define RIGHT_ENCB_PIN              GPIO_PIN_7
-#define RIGHT_ENCB_CHANNEL          TIM_CHANNEL_2
 
 #define LEFT_ENCA_PORT              GPIOB
-#define LEFT_ENCA_PIN               GPIO_PIN_8
-#define LEFT_ENCA_CHANNEL           TIM_CHANNEL_3
+#define LEFT_ENCA_PIN               GPIO_PIN_4
 
 #define LEFT_ENCB_PORT              GPIOB
-#define LEFT_ENCB_PIN               GPIO_PIN_9
-#define LEFT_ENCB_CHANNEL           TIM_CHANNEL_4
+#define LEFT_ENCB_PIN               GPIO_PIN_5
 
 // Drive constants
 #define PRE_GEAR_TICKS              48
@@ -63,6 +59,7 @@
 #define UART6_TX_PIN                GPIO_PIN_6
 #define UART6_RX_PIN                GPIO_PIN_7
 
+// Debug UART2
 #define USART2_TX_PORT              GPIOA
 #define USART2_TX_PIN               GPIO_PIN_2
 
@@ -94,7 +91,7 @@ typedef struct {
     uint32_t prev_millis;
     float s_elapsed;
 
-    TIM_HandleTypeDef htimx;
+    TIM_HandleTypeDef* htimx;
 } Encoder;
 
 typedef enum {
