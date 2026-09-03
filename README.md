@@ -35,7 +35,7 @@ cmake --build build/Debug
 To flash the executables onto the board, first install [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html#section-get-software-table) from STMicroelectronics if haven't already.
 
 Then, either:
-1. Use VSCode tasks, which are already setup in the .vscode/ of each project directory, or
+1. Use VSCode tasks, which are already setup in .vscode/ of each project directory (requires STM32CubeProgrammer to be in PATH), or
 2. Manually run the following command:
    
 ```shell
