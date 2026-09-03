@@ -11,8 +11,8 @@ uint32_t target_ticks = 0;
 uint16_t start_ticks = 0;
 ActionType rotate_dir;
 
-volatile float forward_m = 1;
-volatile float degs = 180;
+volatile float forward_m = 0;
+volatile float degs = 0;
 
 static uint16_t Get_Ticks_Traveled(Encoder* enc, uint16_t start_ticks);
 

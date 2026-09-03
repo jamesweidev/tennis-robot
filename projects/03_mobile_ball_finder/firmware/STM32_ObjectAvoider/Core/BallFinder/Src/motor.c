@@ -47,6 +47,7 @@ void Draw_Circle(float radius)
 void Smooth_Drive(ActionType new_action)
 {
 	#define RPM 140
+
 	if (current_action == ACTION_STOP)
 	{
 		Drive_Motor(RPM, RPM, new_action);
@@ -59,7 +60,7 @@ void Smooth_Drive(ActionType new_action)
 		// If the new action differs from current action
 		// Stop the robot for some time first to prevent jitters
 		Stop_Robot();
-		HAL_Delay(800);
+		HAL_Delay(1000);
 		Drive_Motor(RPM, RPM, new_action);
 		current_action = new_action;
 	}
@@ -69,15 +70,7 @@ static void Drive_Motor(int32_t r_rpm, int32_t l_rpm, ActionType type)
 {
 	right_encoder.starting_rpm = right_encoder.current_rpm;
 	left_encoder.starting_rpm = left_encoder.current_rpm;
-
-	if (current_action == ACTION_STOP)
-	{
-		right_encoder.starting_rpm = 0;
-		left_encoder.starting_rpm = 0;
-	}
-
 	// Adjust the sign of rpm based on the specified direction
-	// Defaults to positive, changes to negative if needed
 	if (type == ACTION_RIGHT || type == ACTION_REVERSE)
 	{
 		r_rpm *= -1;
@@ -92,20 +85,20 @@ static void Drive_Motor(int32_t r_rpm, int32_t l_rpm, ActionType type)
 	{
 		// Reset the PID i Value so it doesn't bleed into the next rpm
 		right_encoder.pid.i_value = 0;
-
-		right_encoder.target_rpm = 0;
 	}
 	// Same for the left motor
 	if (left_encoder.final_target_rpm != l_rpm)
 	{
 		left_encoder.pid.i_value = 0;
-
-		left_encoder.target_rpm = 0;
 	}
 
 	// Set the final RPM target
 	right_encoder.final_target_rpm = r_rpm;
 	left_encoder.final_target_rpm = l_rpm;
+
+	// Initialize the target to the current rpm
+	right_encoder.target_rpm = right_encoder.starting_rpm;
+	left_encoder.target_rpm = left_encoder.starting_rpm;
 
 	motor_direction_config(type);
 }
@@ -113,14 +106,14 @@ static void Drive_Motor(int32_t r_rpm, int32_t l_rpm, ActionType type)
 void Stop_Robot()
 {
 	// Set to 0 for 0 speed
-	__HAL_TIM_SET_COMPARE(&htim2, AIN1_CHANNEL, 0);
-	__HAL_TIM_SET_COMPARE(&htim2, AIN2_CHANNEL, 0);
-	__HAL_TIM_SET_COMPARE(&htim2, BIN1_CHANNEL, 0);
-	__HAL_TIM_SET_COMPARE(&htim2, BIN2_CHANNEL, 0);
+	__HAL_TIM_SET_COMPARE(&htim2, AIN1_CHANNEL, PWM_PERIOD);
+	__HAL_TIM_SET_COMPARE(&htim2, AIN2_CHANNEL, PWM_PERIOD);
+	__HAL_TIM_SET_COMPARE(&htim2, BIN1_CHANNEL, PWM_PERIOD);
+	__HAL_TIM_SET_COMPARE(&htim2, BIN2_CHANNEL, PWM_PERIOD);
 
 	// Rest all encoder values so they don't bleed into future speed settings
-	right_encoder = (Encoder) {.htimx = right_encoder.htimx};
-	left_encoder = (Encoder) {.htimx = left_encoder.htimx};
+	right_encoder = (Encoder) {.htimx = right_encoder.htimx, .prev_ticks = Get_Ticks(&right_encoder)};
+	left_encoder = (Encoder) {.htimx = left_encoder.htimx, .prev_ticks = Get_Ticks(&left_encoder)};
 
 	current_action = ACTION_STOP;
 }

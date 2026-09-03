@@ -59,9 +59,9 @@
 #define UART6_TX_PIN                GPIO_PIN_6
 #define UART6_RX_PIN                GPIO_PIN_7
 
-// Debug UART2
-#define USART2_TX_PORT              GPIOA
-#define USART2_TX_PIN               GPIO_PIN_2
+// Debug UART3
+#define USART3_TX_PORT              GPIOC
+#define USART3_TX_PIN               GPIO_PIN_10
 
 // Directions
 typedef enum
@@ -84,6 +84,7 @@ typedef struct {
     volatile int32_t target_rpm;
     int32_t final_target_rpm; // used to for smoother motor speed setting
     float starting_rpm;
+    int32_t sync_correction;
     PID_State pid;
     uint32_t active_pwm_channel;
     uint32_t inactive_pwm_channel;

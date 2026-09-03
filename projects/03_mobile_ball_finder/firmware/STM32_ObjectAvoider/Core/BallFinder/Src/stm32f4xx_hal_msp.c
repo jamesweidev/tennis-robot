@@ -112,20 +112,28 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart)
         // Debug UART msp init
 
         // Enable USART2 and GPIOB clock
+        __HAL_RCC_USART3_CLK_ENABLE();
         __HAL_RCC_USART2_CLK_ENABLE();
+        __HAL_RCC_GPIOC_CLK_ENABLE();
         __HAL_RCC_GPIOA_CLK_ENABLE();
     
         // Enable TX and RX GPIOs and set the appropriate alternate function
         GPIO_InitTypeDef gpio_config = {0};
-        gpio_config.Alternate = GPIO_AF7_USART2;
+        gpio_config.Alternate = GPIO_AF7_USART3;
         gpio_config.Mode = GPIO_MODE_AF_PP;
         gpio_config.Pull = GPIO_NOPULL;
         gpio_config.Speed = GPIO_SPEED_FREQ_MEDIUM;
     
-        gpio_config.Pin = USART2_TX_PIN;
-        HAL_GPIO_Init(USART2_TX_PORT, &gpio_config);
+        gpio_config.Pin = USART3_TX_PIN;
+        HAL_GPIO_Init(USART3_TX_PORT, &gpio_config);
+        
+        gpio_config.Pin = GPIO_PIN_2;
+        HAL_GPIO_Init(GPIOA, &gpio_config);
     
         // Enable UART interrupts
+        HAL_NVIC_SetPriority(USART3_IRQn, 15, 0);
+        HAL_NVIC_EnableIRQ(USART3_IRQn);
+
         HAL_NVIC_SetPriority(USART2_IRQn, 15, 0);
         HAL_NVIC_EnableIRQ(USART2_IRQn);
     
