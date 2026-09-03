@@ -4,7 +4,7 @@
     {
       "label": "STM32 Flash: BallFinder",
       "type": "shell",
-      "command": "/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/Resources/bin/STM32_Programmer_CLI",
+      "command": "STM32_Programmer_CLI",
       "args": [
         "-c",
         "port=SWD",
@@ -18,7 +18,7 @@
     {
       "label": "STM32 Flash: Testing",
       "type": "shell",
-      "command": "/Applications/STMicroelectronics/STM32Cube/STM32CubeProgrammer/STM32CubeProgrammer.app/Contents/Resources/bin/STM32_Programmer_CLI",
+      "command": "STM32_Programmer_CLI",
       "args": [
         "-c",
         "port=SWD",
