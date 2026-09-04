@@ -83,7 +83,8 @@ typedef struct {
 	volatile float current_rpm;
     volatile int32_t target_rpm;
     int32_t final_target_rpm; // used to for smoother motor speed setting
-    float starting_rpm;
+    uint16_t starting_ticks; // Tick count as the beginning of a movement
+    float starting_rpm; // RPM at the beginning of a movement
     int32_t sync_correction;
     PID_State pid;
     uint32_t active_pwm_channel;

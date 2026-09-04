@@ -33,8 +33,6 @@ void Command_Receive_Callback(void)
     forward_m = strtof(forward_str, &endptr);
     degs = strtof(degs_str, &endptr);
 
-    // printf("received command f: %.2f, d: %.2f", forward_m, degs);
-
     Receive_Command();
 }
 

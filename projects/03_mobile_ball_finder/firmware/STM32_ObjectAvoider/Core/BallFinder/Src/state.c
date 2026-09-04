@@ -50,14 +50,14 @@ void Update_State(void)
                 break;
             }
 
-			target_ticks = Get_Turn_Ticks(degs);
-
 			// Change rotate direction based on deg sign
 			rotate_dir = ACTION_RIGHT;
 			if (degs < 0)
 			{
 				rotate_dir = ACTION_LEFT;
 			}
+			
+			target_ticks = Get_Turn_Ticks(degs);
 
 			start_ticks = Get_Ticks(&right_encoder);
 
@@ -77,7 +77,8 @@ void Update_State(void)
 			{
 				Stop_Robot();
 				start_ticks = Get_Ticks(&right_encoder);
-				target_ticks = TICKS_PER_METER * forward_m;
+
+				target_ticks = (uint32_t) (TICKS_PER_METER * forward_m * 0.88f); // Adjust for the consistent overshoot
 				current_state = DRIVING_TO_BALL;
 
 			}
@@ -118,7 +119,7 @@ void Update_State(void)
 
 static uint16_t Get_Ticks_Traveled(Encoder* enc, uint16_t start_ticks)
 {
-	int16_t delta = Get_Ticks(&right_encoder) - start_ticks;
+	int16_t delta = Get_Ticks(enc) - start_ticks;
 
 	return (uint16_t) abs(delta);
 }

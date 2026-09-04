@@ -24,6 +24,8 @@ void Encoder_TIM3_TIM4_Init(void)
 	encoder_init.EncoderMode = TIM_ENCODERMODE_TI12;
 	encoder_init.IC1Selection = TIM_ICSELECTION_DIRECTTI;
 	encoder_init.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+	encoder_init.IC1Filter = 2;
+	encoder_init.IC2Filter = 2;
 
 	// Left encoder
     htim3.Instance = TIM3;
@@ -88,20 +90,21 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	// Ramp up the target RPM
 	Set_Target_RPM(&right_encoder);
 	Set_Target_RPM(&left_encoder);
-
+	
 	// Update ticks and rpm
 	Update_Encoder(&right_encoder);
 	Update_Encoder(&left_encoder);
-
-	// Set sync correction to correct for two motors running at slightly different rpm
-	Set_Sync_Correction();
-
+	
 	// Avoid setting PWM in the case of a stopped robot
 	// Stop_Robot() already set all channels to 0
 	if (right_encoder.final_target_rpm == 0)
 	{
 		return;
 	}
+
+	// Set sync correction to correct for two motors running at slightly different rpm
+	Set_Sync_Correction();
+
 
 	printf("{\"r_rpm\": %.2f, \"r_ctarget\": %ld, \"r_ftarget\": %ld, \"r_starting\": %.2f, \"l_rpm\": %.2f, \"l_ctarget\": %ld, \"l_ftarget\": %ld, \"l_starting\": %.2f}\r\n", 
 		right_encoder.current_rpm,
@@ -131,9 +134,9 @@ uint16_t Get_Ticks(Encoder* enc)
 static uint32_t Get_Compare(Encoder* enc)
 {
 	float correction = Get_PID_Correction(enc);
-	float BASE_DUTY = 0.04f;
+	float BASE_DUTY = 0.1f;
 
-	// For positive rpm
+	// Duty for motors to start moving
 	float duty = correction + BASE_DUTY;
 
 	if (enc->target_rpm < 0)
@@ -141,23 +144,20 @@ static uint32_t Get_Compare(Encoder* enc)
 		duty = BASE_DUTY - correction;
 	}
 
+	// cap duty to the limit values
 	if (duty > 1) duty = 1;
 	if (duty < 0) duty = 0;
 
-	uint32_t compare = (uint32_t) (PWM_PERIOD * duty);
+	int32_t compare = (int32_t) (PWM_PERIOD * duty);
 
-	// account for the two motors not having sync'd rpm
+	// account for the two motors potentially having different speeds
 	compare += enc->sync_correction;
 
-	if (enc == &left_encoder)
-	{
-		printf("left compare: %lu\r\n", compare);
-	} else 
-	{
-		printf("right compare: %lu\r\n", compare);
-	}
+	// Cap compare to allowed values
+	if (compare > PWM_PERIOD) compare = PWM_PERIOD;
+	if (compare < 0) compare = 0;
 
-	return compare;
+	return (uint32_t) compare;
 }
 
 static void Set_Target_RPM(Encoder* enc)
@@ -177,7 +177,6 @@ static void Set_Target_RPM(Encoder* enc)
 	}else if (curr_target < final)
 	{
 		// add when current is less than final
-		// printf("rt: %ld, lt: %ld", right_encoder.target_rpm, left_encoder.target_rpm)
 		enc->target_rpm += diff * ramp_rate;
 	} else if (curr_target > final)
 	{
@@ -198,13 +197,28 @@ static void Update_Encoder(Encoder* enc)
 	enc->current_rpm = (tick_rate * 60) / TICKS_PER_ROTATION;
 }
 
+static int16_t Get_Abs_Ticks_Elapsed(Encoder* enc)
+{
+	int16_t ticks_elapsed = (int16_t) (Get_Ticks(enc) - enc->starting_ticks);
+
+	return abs(ticks_elapsed);
+}
+
+static int16_t Get_Ticks_Diff()
+{
+	int16_t r_ticks = Get_Abs_Ticks_Elapsed(&right_encoder);
+	int16_t l_ticks = Get_Abs_Ticks_Elapsed(&left_encoder);
+
+	return abs(r_ticks) - abs(l_ticks);
+}
+
 static void Set_Sync_Correction()
 {
-	float diff = right_encoder.current_rpm - left_encoder.current_rpm;
+	int16_t diff = Get_Ticks_Diff();
 
-	int32_t correction = (int32_t) diff * 10;
+	int32_t correction = (int32_t) diff * 1.5;
 
-	right_encoder.sync_correction += -1 * correction;
-	left_encoder.sync_correction += correction;
+	right_encoder.sync_correction = -1 * correction;
+	left_encoder.sync_correction = correction;
 }
 

@@ -23,13 +23,14 @@ uint32_t Get_Turn_Ticks(float degs)
 	float distance_180_deg = WHEEL_DISTANCE_M * 3.14f / 2;
 
 	// The distance both wheels actually have to travel in meters
-	float m_to_travel = distance_180_deg * degs / 180;
+	// degs could be negative, but direction is already taken care of in state machine
+	float m_to_travel = fabsf(distance_180_deg * degs / 180);
 
 	// in ticks
-	uint32_t rotate_ticks = abs((uint32_t) (m_to_travel * TICKS_PER_METER));
+	uint32_t rotate_ticks = (uint32_t) (m_to_travel * TICKS_PER_METER);
 
 	// correction
-	rotate_ticks *= 1.15;
+	rotate_ticks *= 0.9f;
 
 	return rotate_ticks;
 }
@@ -70,6 +71,12 @@ static void Drive_Motor(int32_t r_rpm, int32_t l_rpm, ActionType type)
 {
 	right_encoder.starting_rpm = right_encoder.current_rpm;
 	left_encoder.starting_rpm = left_encoder.current_rpm;
+	right_encoder.starting_ticks = Get_Ticks(&right_encoder);
+	left_encoder.starting_ticks = Get_Ticks(&left_encoder);
+
+	printf("\n\n\n\n\n\n\nstarting ticks r: %u l: %u\r\n", right_encoder.starting_ticks, left_encoder.starting_ticks);
+
+
 	// Adjust the sign of rpm based on the specified direction
 	if (type == ACTION_RIGHT || type == ACTION_REVERSE)
 	{
