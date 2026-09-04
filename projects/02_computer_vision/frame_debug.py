@@ -6,7 +6,7 @@ FOCAL_LENGTH_PX = 1120 / 2
 BALL_DIAMETER_M = 0.067
 
 low_H = 25 # 27
-low_S = 60 # 30
+low_S = 45 # 30
 high_H = 90
 high_S = 255
 window_name_result = 'Result'
@@ -19,9 +19,9 @@ frame = cv2.imread('test_frames/test_frame.jpg')
 assert frame is not None
 
 
-blurred = cv2.GaussianBlur(frame, (5,5), 0)
+blurred = cv2.GaussianBlur(frame, (3,3), 0)
 
-lower_bound = np.array([low_H, low_S, 80])
+lower_bound = np.array([low_H, low_S, 100])
 upper_bound = np.array([high_H, high_S, 255])
 
 frame_hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
@@ -30,6 +30,25 @@ color_filter = cv2.inRange(frame_hsv, lower_bound, upper_bound)
 kernel = np.ones(shape=(7, 7), dtype=np.uint8)
 opened_filter = cv2.morphologyEx(color_filter, cv2.MORPH_OPEN, kernel)
 final_filter = cv2.morphologyEx(opened_filter, cv2.MORPH_CLOSE, kernel)
+
+dist = cv2.distanceTransform(final_filter, cv2.DIST_L2, 5)
+
+_, radius, _, center = cv2.minMaxLoc(dist)
+
+print(f"center: {center}")
+print(f"radius: {radius}")
+
+test = frame.copy()
+
+cv2.circle(
+    test,
+    center,
+    int(radius),
+    (255, 0, 0),
+    2
+)
+
+cv2.imshow("distance transform circle", test)
 
 contours, _ = cv2.findContours(final_filter, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 

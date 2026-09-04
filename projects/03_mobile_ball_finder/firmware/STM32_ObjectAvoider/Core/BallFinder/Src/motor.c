@@ -30,7 +30,7 @@ uint32_t Get_Turn_Ticks(float degs)
 	uint32_t rotate_ticks = (uint32_t) (m_to_travel * TICKS_PER_METER);
 
 	// correction
-	rotate_ticks *= 0.9f;
+	rotate_ticks *= 0.98f;
 
 	return rotate_ticks;
 }
@@ -47,7 +47,7 @@ void Draw_Circle(float radius)
 
 void Smooth_Drive(ActionType new_action)
 {
-	#define RPM 140
+	#define RPM 100
 
 	if (current_action == ACTION_STOP)
 	{
@@ -71,11 +71,12 @@ static void Drive_Motor(int32_t r_rpm, int32_t l_rpm, ActionType type)
 {
 	right_encoder.starting_rpm = right_encoder.current_rpm;
 	left_encoder.starting_rpm = left_encoder.current_rpm;
-	right_encoder.starting_ticks = Get_Ticks(&right_encoder);
-	left_encoder.starting_ticks = Get_Ticks(&left_encoder);
 
-	printf("\n\n\n\n\n\n\nstarting ticks r: %u l: %u\r\n", right_encoder.starting_ticks, left_encoder.starting_ticks);
+	right_encoder.ticks_elapsed = 0;
+	left_encoder.ticks_elapsed = 0;
 
+    right_encoder.prev_millis = HAL_GetTick();
+    left_encoder.prev_millis = HAL_GetTick();
 
 	// Adjust the sign of rpm based on the specified direction
 	if (type == ACTION_RIGHT || type == ACTION_REVERSE)
@@ -104,8 +105,8 @@ static void Drive_Motor(int32_t r_rpm, int32_t l_rpm, ActionType type)
 	left_encoder.final_target_rpm = l_rpm;
 
 	// Initialize the target to the current rpm
-	right_encoder.target_rpm = right_encoder.starting_rpm;
-	left_encoder.target_rpm = left_encoder.starting_rpm;
+	right_encoder.target_rpm = r_rpm;
+	left_encoder.target_rpm = l_rpm;
 
 	motor_direction_config(type);
 }
@@ -119,8 +120,14 @@ void Stop_Robot()
 	__HAL_TIM_SET_COMPARE(&htim2, BIN2_CHANNEL, PWM_PERIOD);
 
 	// Rest all encoder values so they don't bleed into future speed settings
-	right_encoder = (Encoder) {.htimx = right_encoder.htimx, .prev_ticks = Get_Ticks(&right_encoder)};
-	left_encoder = (Encoder) {.htimx = left_encoder.htimx, .prev_ticks = Get_Ticks(&left_encoder)};
+	right_encoder = (Encoder) {
+		.htimx = right_encoder.htimx, 
+		.prev_ticks = Get_Ticks(&right_encoder)
+	};
+	left_encoder = (Encoder) {
+		.htimx = left_encoder.htimx, 
+		.prev_ticks = Get_Ticks(&left_encoder)
+	};
 
 	current_action = ACTION_STOP;
 }

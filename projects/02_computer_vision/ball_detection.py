@@ -1,16 +1,13 @@
 import numpy as np
 import math
 import cv2
+import threading
 
 from uart_send import uart_send, open_uart
+from contour_processing import get_contours, filtered_contours
 
 FOCAL_LENGTH_PX = 1120 / 2
 BALL_DIAMETER_M = 0.067
-
-low_H = 25 # 27
-low_S = 60 # 30
-high_H = 90
-high_S = 255
 
 window_name_result = 'Result'
 window_name_unfiltered = "unfiltered"
@@ -32,43 +29,25 @@ frame_to_cap_with_contours = None
 
 ser = open_uart()
 
-def get_contours(frame):
-    # process the image then return all external contours
-    blurred = cv2.GaussianBlur(frame, (5,5), 0)
 
-    lower_bound = np.array([low_H, low_S, 80])
-    upper_bound = np.array([high_H, high_S, 255])
+current_command = b''
+def send_cmd():
+    global current_command
+    while True:
+        input("enter to go to ball")
+        if len(current_command) == 0:
+            print("command not ready or ball not found")
+            continue
 
-    frame_hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
-    color_filter = cv2.inRange(frame_hsv, lower_bound, upper_bound)
+        uart_send(ser, current_command)
+        print(current_command.decode())
 
-    kernel = np.ones(shape=(7, 7), dtype=np.uint8)
-    opened_filter = cv2.morphologyEx(color_filter, cv2.MORPH_OPEN, kernel)
-    final_filter = cv2.morphologyEx(opened_filter, cv2.MORPH_CLOSE, kernel)
+        current_command = b''
 
-    contours, _ = cv2.findContours(final_filter, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    return contours
+t = threading.Thread(target=send_cmd, daemon=True)
+t.start()
 
-def filtered_contours(contours) -> list:
-    # filter contours based on how much they resemble a perfect circle
-    scores = []
-    for i, contour in enumerate(contours):
-        area = cv2.contourArea(contour)
-
-        (x, y), radius = cv2.minEnclosingCircle(contour)
-
-        # Area if the contour is a perfect circle
-        perfect_area = math.pi * (radius ** 2)
-
-        # score contours based on how much they resemble a perfect circle
-        score = area / perfect_area
-        scores.append((i, score, radius, int(x), int(y)))
-
-    # Only allow contours that at least 70% resembles a circle
-    scores = [score for score in scores if score[1] > 0.75]
-
-    return scores
-
+measurements = []
 while True:
     key = cv2.waitKey(1)
     if key == ord('q'):
@@ -85,7 +64,6 @@ while True:
     frame_to_cap = frame.copy()
 
     contours = get_contours(frame)
-
     scores = filtered_contours(contours)
 
     # show the image with all the unfiltered contours drawn
@@ -109,12 +87,28 @@ while True:
         x_offset_px = best_x - cap.get(cv2.CAP_PROP_FRAME_WIDTH) / 2
         rad_from_center = math.atan(x_offset_px / FOCAL_LENGTH_PX)
         deg_from_center = math.degrees(rad_from_center)
-        
-        uart_send(ser, f'f: {distance:.2f} d: {deg_from_center:.2f} \n'.encode("utf-8"))
-        print(f'Distance: {distance} m deg: {deg_from_center}')
 
+        measurements.append((distance, deg_from_center))
+        
         cv2.circle(frame, (best_x, best_y), int(best_radius), (0, 0, 255), 2, cv2.LINE_AA)
-        # input("enter to get next ball")
+
+        # 5 consecutive ball measurements must have been captured
+        # otherwise it might not be stable
+        if len(measurements) >= 5:
+            measurements.sort(key=(lambda x: x[0]))
+
+            median_measurement = measurements[2]
+            distance = median_measurement[0] + 0.1
+            degs = median_measurement[1] * 0.9
+
+            # uart_send(ser, f'f: {distance:.2f} d: {degs:.2f} \n'.encode("utf-8"))
+            # print(f'Distance: {distance} m deg: {degs}')
+            current_command = f'f: {distance:.2f} d: {degs:.2f} \n'.encode("utf-8")
+
+            measurements = []
+    else:
+        # A frame without the ball was detected, reset measurements
+        measurements = []
 
     cv2.imshow(window_name_result, frame)
     

@@ -28,12 +28,12 @@ void Update_LED(void)
 
 void Update_State(void)
 {
-	float distance = Get_Distance();
+	// float distance = Get_Distance();
 
-	if (distance == 0.0f)
-	{
-		distance = 2.0f;
-	}
+	// if (distance == 0.0f)
+	// {
+	// 	distance = 2.0f;
+	// }
 
 	// if (distance < 0.3 && current_state != OBSTACLE_DETECTED)
 	// {
@@ -81,6 +81,7 @@ void Update_State(void)
 				target_ticks = (uint32_t) (TICKS_PER_METER * forward_m * 0.88f); // Adjust for the consistent overshoot
 				current_state = DRIVING_TO_BALL;
 
+				HAL_Delay(1000);
 			}
 
 			break;

@@ -4,11 +4,18 @@
 #include <math.h>
 #include <stdio.h>
 
+
+#define LEFT_PK 0.0016f
+#define RIGHT_PK 0.0015f
+#define LEFT_IK 0.0043f
+#define RIGHT_IK 0.0035f
+
+extern Encoder right_encoder;
+
 float Get_PID_Correction(Encoder* enc)
 {
-    // PID
-    float pK = 0.0015f;
-    float iK = 0.0035f;
+    float pK = (enc == &right_encoder) ? RIGHT_PK : LEFT_PK;
+    float iK = (enc == &right_encoder) ? RIGHT_IK : LEFT_IK;
 
     float err = enc->target_rpm - enc->current_rpm;
 
