@@ -1,10 +1,8 @@
 import numpy as np
 import math
 import cv2
-import threading
 
-from uart_send import uart_send, open_uart
-from contour_processing import get_contours, filtered_contours
+from contour_processing import get_contours, filtered_contours, get_hough_circles
 
 FOCAL_LENGTH_PX = 1120 / 2
 BALL_DIAMETER_M = 0.067
@@ -27,25 +25,6 @@ cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
 frame_to_cap = None
 frame_to_cap_with_contours = None
 
-ser = open_uart()
-
-
-current_command = b''
-def send_cmd():
-    global current_command
-    while True:
-        input("enter to go to ball")
-        if len(current_command) == 0:
-            print("command not ready or ball not found")
-            continue
-
-        uart_send(ser, current_command)
-        print(current_command.decode())
-
-        current_command = b''
-
-t = threading.Thread(target=send_cmd, daemon=True)
-t.start()
 
 def get_ball_location(rad, x):
     ball_diam_px = rad * 2
@@ -60,6 +39,7 @@ def get_ball_location(rad, x):
 
     return (distance, deg_from_center)
 
+# current_command = f'f: {distance:.2f} d: {degs:.2f} \n'.encode("utf-8")
 measurements = []
 while True:
     key = cv2.waitKey(1)
@@ -87,37 +67,20 @@ while True:
     frame_to_cap_with_contours = frame_cpy
     cv2.imshow(window_name_unfiltered, frame_cpy)
 
-    # if at least one ball exists on the screen
-    if len(scores) > 0:
-        # if multiple balls, select the biggest one
-        best_contour_i, best_score, best_radius, best_x, best_y = max(scores, key= lambda x : x[2])
-
-        distance, degs = get_ball_location(best_radius, best_x)
-        measurements.append((distance, degs))
-        
-        cv2.circle(frame, (best_x, best_y), int(best_radius), (0, 0, 255), 2, cv2.LINE_AA)
-
-        # 5 consecutive ball measurements must have been captured
-        # otherwise it might not be stable
-        if len(measurements) >= 5:
-            measurements.sort(key=(lambda x: x[0]))
-
-            median_measurement = measurements[2]
-            distance = median_measurement[0] + 0.1
-            degs = median_measurement[1] * 0.9
-
-            # print(f'Distance: {distance} m deg: {degs}')
-            current_command = f'f: {distance:.2f} d: {degs:.2f} \n'.encode("utf-8")
-
-            measurements = []
-    else:
-        # A frame without the ball was detected, reset measurements
-        measurements = []
+    hough_frame = frame.copy()
+    circles = get_hough_circles(frame)
+    if circles is not None:
+        circles = np.uint16(np.around(circles))
+        for i in circles[0, :]:
+            # Draw outer circle
+            cv2.circle(hough_frame, (i[0], i[1]), i[2], (0, 255, 0), 2)
+            # Draw center
+            cv2.circle(hough_frame, (i[0], i[1]), 2, (0, 0, 255), 3)
+            print(f'center: ({i[0]}, {i[1]}), radius: {i[2]}')
 
     cv2.imshow(window_name_result, frame)
     
 
-ser.close()
 cap.release()
 cv2.destroyAllWindows()
 
